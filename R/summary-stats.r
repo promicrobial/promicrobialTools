@@ -16,6 +16,7 @@ calc_summary_stats <- function(x, col, digits = 3) {
             sd = NA_real_,
             SEM = NA_real_,
             median = NA_real_,
+            iqr = NA_real_,
             max = NA_real_,
             min = NA_real_
         ))
@@ -31,6 +32,7 @@ calc_summary_stats <- function(x, col, digits = 3) {
         sd = round(sd_val, digits),
         SEM = round(sd_val / sqrt(n), digits),
         median = round(stats::median(x[[col]], na.rm = TRUE), digits),
+        iqr = round(stats::IQR(x[[col]], na.rm = TRUE), digits),
         max = round(max(x[[col]], na.rm = TRUE), digits),
         min = round(min(x[[col]], na.rm = TRUE), digits)
     )
