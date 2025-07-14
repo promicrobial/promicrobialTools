@@ -350,7 +350,7 @@ plot.varDisp <- function(x,
                               type = c("histogram", "dot"),
                               threshold = 1,
                               show_labels = TRUE,
-                              use_ggplot = FALSE,
+                              log_transform = TRUE,
                               ...) {
   
   # Ensure x has the correct structure
@@ -363,18 +363,29 @@ plot.varDisp <- function(x,
   
   # Extract ratio data
   ratios <- x$ratio
+
+  # Log transform (default)
+  if (log_transform) {
+      plot_ratios <- log10(ratios)
+      x_label <- "log10(Variance-to-Mean Ratio)"
+      threshold_line <- log10(threshold)
+  } else {
+      plot_ratios <- ratios
+      x_label <- "Variance-to-Mean Ratio"
+      threshold_line <- threshold
+  }
       
   if (type == "histogram") {
     # Create histogram
-    hist(ratios,
+    hist(plot_ratios,
          main = "Distribution of Variance-to-Mean Ratios",
-         xlab = "Variance-to-Mean Ratio",
+         xlab = x_label,
          ylab = "Frequency",
          breaks = "FD",  # Freedman-Diaconis rule for bin width
          ...)
     
     # Add threshold line
-    abline(v = threshold, 
+    abline(v = threshold_line, 
            lty = 2, 
            lwd = 2)
     
@@ -382,20 +393,20 @@ plot.varDisp <- function(x,
     legend("topright",
            legend = c("Threshold", 
                      sprintf("Overdispersed (n=%d)", 
-                             sum(ratios > threshold))),
+                             sum(plot_ratios > threshold_line))),
            lty = c(2, 1))
     
   } else if (type == "dot") {
     # Create dot plot
-    plot(ratios,
+    plot(plot_ratios,
          main = "Variance-to-Mean Ratios by Variable",
          ylab = "Variance-to-Mean Ratio",
-         xlab = "Variable Index",
+         xlab = x_label,
          pch = 19,
          ...)
     
     # Add threshold line
-    abline(h = threshold, 
+    abline(h = threshold_line, 
            lty = 2, 
            lwd = 2)
     
