@@ -9,7 +9,7 @@
   type = c("histogram", "dot"),
   threshold = 1,
   show_labels = TRUE,
-  use_ggplot = FALSE,
+  log_transform = TRUE,
   ...
 )
 }
@@ -22,9 +22,9 @@
 
 \item{show_labels}{Logical, whether to show variable labels (default = TRUE)}
 
-\item{use_ggplot}{Logical, whether to use ggplot2 or base R (default = FALSE)}
-
 \item{...}{Additional arguments passed to plotting functions}
+
+\item{use_ggplot}{Logical, whether to use ggplot2 or base R (default = FALSE)}
 }
 \description{
 Plot method for overdispersion results
