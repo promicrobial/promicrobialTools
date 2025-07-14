@@ -1,0 +1,124 @@
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+# promicrobialTools
+
+<img src="man/figures/logo.png" align="right" height="139" />
+
+<!-- badges: start -->
+
+[![R-CMD-check](https://github.com/username/packagename/workflows/R-CMD-check/badge.svg)](https://github.com/promicrobial/promicrobialTools/actions)
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://lifecycle.r-lib.org/articles/stages.html#experimental)
+[![CRAN
+status](https://www.r-pkg.org/badges/version/promicrobialTools)](https://CRAN.R-STATUS.org/package=promicrobialTools)
+<!-- badges: end -->
+
+Numerous useful functions developed for personal use data analysis,
+visualisation and utility operations.
+
+## Installation
+
+You can install the development version of promicrobialTools like so:
+
+``` r
+# Install remotes if not already installed
+if (!requireNamespace("remotes", quietly = TRUE)) {
+    install.packages("remotes")
+}
+# Install promicrobialTools from GitHub
+remotes::install_github("promicrobial/promicrobialTools")
+```
+
+> \[!note\] This package depends on `ampvis2` which is not available on
+> CRAN. To install from
+> [GitHub](https://github.com/KasperSkytte/ampvis2), you can use the
+> following command:
+
+``` r
+
+# Install ampvis2 from GitHub
+remotes::install_github("kasperskytte/ampvis2")
+```
+
+## Features
+
+\< placeholder \>
+
+## Usage
+
+This is a basic example which shows you how to solve a common problem:
+
+``` r
+library(promicrobialTools)
+## basic example code
+```
+
+## Documentation
+
+- [Package Website](https://username.github.io/packagename/)
+- [Function
+  Reference](https://username.github.io/packagename/reference/)
+- [Vignettes](https://username.github.io/packagename/articles/)
+
+## Example Gallery
+
+\< placeholder \>
+
+## Quarto/RMarkdown Integration
+
+This package is designed to work seamlessly with Quarto and R Markdown.
+Example:
+
+```` markdown
+---
+title: "Analysis Report"
+format:
+  html:
+    toc: true
+---
+
+
+``` r
+library(promicrobialTools)
+
+# Create summary table
+gt_summary(data, by = group)
+
+# Calculate effect sizes
+vda_results <- calculate_pairwise_vda(data, 
+                                    value_col = "measure", 
+                                    group_col = "group")
+```
+````
+
+\< placeholder for output \>
+
+## Getting Help
+
+If you encounter a bug, please file an issue with a minimal reproducible
+example on
+[GitHub](https://github.com/promicrobial/promicrobialTools/issues).
+
+## License
+
+This project is licensed under the MIT License - see the
+[LICENSE](LICENSE.md) file for details.
+
+## Citation
+
+If you use this package in your research, please cite it:
+
+``` r
+citation("promicrobialTools")
+```
+
+## Related Work
+
+\< placeholder \>
+
+## Acknowledgments
+
+\< placeholder \>
+
+------------------------------------------------------------------------
