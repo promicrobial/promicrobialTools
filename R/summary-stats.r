@@ -178,7 +178,7 @@ do_grouped_summary <- function(data, varname, groupnames, digits) {
 #'
 #' @description 
 #' Determines if variables are overdispersed by comparing variance to mean.
-#' Handles single vectors, multiple variables, and data frames.
+#' Handles single vectors and data frames.
 #'
 #' @param x Numeric vector, list of vectors, or data frame
 #' @param digits Number of decimal places for rounding (default = 4)
@@ -196,12 +196,6 @@ do_grouped_summary <- function(data, varname, groupnames, digits) {
 #' x <- rpois(100, lambda = 5)
 #' varDisp(x)
 #'
-#' # Multiple variables
-#' vars <- list(
-#'   a = rpois(100, 5),
-#'   b = rnbinom(100, 5, 0.5)
-#' )
-#' varDisp(vars)
 #'
 #' # Data frame
 #' df <- data.frame(
