@@ -216,17 +216,6 @@ varDisp <- function(x, ...) {
   result <- UseMethod("varDisp")
 }
 
-#' Check Variable Overdispersion
-#'
-#' @description 
-#' Determines if variables are overdispersed by comparing variance to mean.
-#' Returns an object of class "overdispersion".
-#'
-varDisp <- function(x, ...) {
-  result <- UseMethod("varDisp")
-  return(result)  # Remove this line - let methods handle class assignment
-}
-
 #' @export
 varDisp.default <- function(x, digits = 4, threshold = 1, 
                                        na.rm = TRUE, verbose = TRUE) {
