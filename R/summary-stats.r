@@ -205,6 +205,7 @@ do_grouped_summary <- function(data, varname, groupnames, digits) {
 #' )
 #' varDisp(df)
 #'
+#' @import magrittr
 #' @export
 varDisp <- function(x, ...) {
   result <- UseMethod("varDisp")
@@ -289,7 +290,7 @@ varDisp.data.frame <- function(x, digits = 4, threshold = 1,
   
   # Print summary if verbose
   if (verbose) {
-    print_summary(results_df, threshold)
+    print(results_df, threshold)
   }
   
   return(results_df)
