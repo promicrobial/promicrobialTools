@@ -173,3 +173,274 @@ do_grouped_summary <- function(data, varname, groupnames, digits) {
     
     return(data_sum)
 }
+
+#' Check Variable Overdispersion
+#'
+#' @description 
+#' Determines if variables are overdispersed by comparing variance to mean.
+#' Handles single vectors, multiple variables, and data frames.
+#'
+#' @param x Numeric vector, list of vectors, or data frame
+#' @param digits Number of decimal places for rounding (default = 4)
+#' @param threshold Ratio threshold for determining overdispersion (default = 1)
+#' @param na.rm Logical, whether to remove NA values (default = TRUE)
+#' @param verbose Logical, whether to print detailed output (default = TRUE)
+#' @param vars Variables to check in data frame (default: all numeric columns)
+#'
+#' @return Depends on input:
+#'   - Vector: List of statistics
+#'   - Multiple variables/data frame: Data frame of results
+#'
+#' @examples
+#' # Single vector
+#' x <- rpois(100, lambda = 5)
+#' varDisp(x)
+#'
+#' # Multiple variables
+#' vars <- list(
+#'   a = rpois(100, 5),
+#'   b = rnbinom(100, 5, 0.5)
+#' )
+#' varDisp(vars)
+#'
+#' # Data frame
+#' df <- data.frame(
+#'   a = rpois(100, 5),
+#'   b = rnbinom(100, 5, 0.5),
+#'   c = rnorm(100, 10, 2)
+#' )
+#' varDisp(df)
+#'
+#' @export
+varDisp <- function(x, ...) {
+  result <- UseMethod("varDisp")
+}
+
+#' Check Variable Overdispersion
+#'
+#' @description 
+#' Determines if variables are overdispersed by comparing variance to mean.
+#' Returns an object of class "overdispersion".
+#'
+varDisp <- function(x, ...) {
+  result <- UseMethod("varDisp")
+  return(result)  # Remove this line - let methods handle class assignment
+}
+
+#' @export
+varDisp.default <- function(x, digits = 4, threshold = 1, 
+                                       na.rm = TRUE, verbose = TRUE) {
+  if (!is.numeric(x)) {
+    stop("Input must be numeric")
+  }
+  
+  # Calculate statistics
+  mean_val <- mean(x, na.rm = na.rm)
+  var_val <- var(x, na.rm = na.rm)
+  ratio <- var_val / mean_val
+  
+  # Create result
+  result <- list(
+    mean = round(mean_val, digits),
+    variance = round(var_val, digits),
+    ratio = round(ratio, digits),
+    is_overdispersed = ratio > threshold,
+    magnitude = dplyr::case_when(
+      ratio < threshold ~ "underdispersed",
+      ratio >= threshold & ratio < threshold * 2 ~ "mildly overdispersed",
+      ratio >= threshold * 2 & ratio < threshold * 5 ~ "moderately overdispersed",
+      ratio >= threshold * 5 ~ "highly overdispersed"
+    )
+  )
+  
+  # Assign class
+  class(result) <- c("varDisp", "list")
+  
+  # Print output if verbose
+  if (verbose) {
+    print(result)
+  }
+  
+  return(result)
+}
+
+#' @export
+varDisp.data.frame <- function(x, digits = 4, threshold = 1, 
+                                          na.rm = TRUE, verbose = TRUE, 
+                                          vars = NULL) {
+  # If no variables specified, use all numeric columns
+  if (is.null(vars)) {
+    vars <- names(x)[sapply(x, is.numeric)]
+  }
+  
+  # Check each variable
+  results <- lapply(vars, function(var) {
+    if (!is.numeric(x[[var]])) {
+      return(NULL)
+    }
+    result <- varDisp(x[[var]], 
+                                 digits = digits,
+                                 threshold = threshold,
+                                 na.rm = na.rm,
+                                 verbose = FALSE)
+    c(variable = var,
+      mean = result$mean,
+      variance = result$variance,
+      ratio = result$ratio,
+      is_overdispersed = result$is_overdispersed,
+      magnitude = result$magnitude)
+  })
+  
+  # Remove NULL results and convert to data frame
+  results <- results[!sapply(results, is.null)]
+  results_df <- do.call(rbind, results) %>%
+    as.data.frame() %>%
+    dplyr::mutate(across(c(mean, variance, ratio), as.numeric),
+                  is_overdispersed = as.logical(is_overdispersed))
+  
+  # Sort by ratio
+  results_df <- results_df[order(-results_df$ratio), ]
+  
+  # Assign class
+  class(results_df) <- c("varDisp", "data.frame")
+  
+  # Print summary if verbose
+  if (verbose) {
+    print_summary(results_df, threshold)
+  }
+  
+  return(results_df)
+}
+
+# Print method for overdispersion class
+#' @export
+print.varDisp <- function(x, ...) {
+  if (inherits(x, "data.frame")) {
+    cat("\nOverdispersion Analysis Results:\n")
+    cat("-----------------------------\n")
+    print(as.data.frame(x), ...)
+  } else {
+    cat("\nOverdispersion Analysis Result:\n")
+    cat("---------------------------\n")
+    cat(sprintf("Mean: %g\n", x$mean))
+    cat(sprintf("Variance: %g\n", x$variance))
+    cat(sprintf("Variance-to-Mean Ratio: %g\n", x$ratio))
+    cat(sprintf("Status: %s\n", x$magnitude))
+  }
+}
+
+# Summary method for overdispersion class
+#' @export
+summary.varDisp <- function(object, ...) {
+  if (inherits(object, "data.frame")) {
+    n_vars <- nrow(object)
+    n_overdispersed <- sum(object$is_overdispersed)
+    
+    cat("\nOverdispersion Summary:\n")
+    cat("--------------------\n")
+    cat(sprintf("Total variables analyzed: %d\n", n_vars))
+    cat(sprintf("Overdispersed variables: %d (%.1f%%)\n", 
+                n_overdispersed, 100 * n_overdispersed/n_vars))
+    
+    # Magnitude breakdown
+    mag_table <- table(object$magnitude)
+    cat("\nMagnitude breakdown:\n")
+    print(mag_table)
+    
+  } else {
+    print.varDisp(object)
+  }
+}
+
+#' Plot method for overdispersion results
+#'
+#' @param x Output from varDisp
+#' @param type Plot type ("histogram" or "dot", default = "histogram")
+#' @param threshold Overdispersion threshold (default = 1)
+#' @param show_labels Logical, whether to show variable labels (default = TRUE)
+#' @param use_ggplot Logical, whether to use ggplot2 or base R (default = FALSE)
+#' @param ... Additional arguments passed to plotting functions
+#'
+#' @export
+plot.varDisp <- function(x, 
+                              type = c("histogram", "dot"),
+                              threshold = 1,
+                              show_labels = TRUE,
+                              use_ggplot = FALSE,
+                              ...) {
+  
+  # Ensure x has the correct structure
+  if (!inherits(x, "varDisp")) {
+    stop("Object must be of class 'varDisp'")
+  }
+  
+  # Match plot type argument
+  type <- match.arg(type)
+  
+  # Extract ratio data
+  ratios <- x$ratio
+      
+  if (type == "histogram") {
+    # Create histogram
+    hist(ratios,
+         main = "Distribution of Variance-to-Mean Ratios",
+         xlab = "Variance-to-Mean Ratio",
+         ylab = "Frequency",
+         breaks = "FD",  # Freedman-Diaconis rule for bin width
+         ...)
+    
+    # Add threshold line
+    abline(v = threshold, 
+           lty = 2, 
+           lwd = 2)
+    
+    # Add legend
+    legend("topright",
+           legend = c("Threshold", 
+                     sprintf("Overdispersed (n=%d)", 
+                             sum(ratios > threshold))),
+           lty = c(2, 1))
+    
+  } else if (type == "dot") {
+    # Create dot plot
+    plot(ratios,
+         main = "Variance-to-Mean Ratios by Variable",
+         ylab = "Variance-to-Mean Ratio",
+         xlab = "Variable Index",
+         pch = 19,
+         ...)
+    
+    # Add threshold line
+    abline(h = threshold, 
+           lty = 2, 
+           lwd = 2)
+    
+    # Add variable labels if requested
+    if (show_labels && !is.null(x$variable)) {
+      text(1:length(ratios),
+           ratios,
+           labels = x$variable,
+           pos = 4,
+           cex = 0.8)
+    }
+    
+    # Add legend
+    legend("topright",
+           legend = c("Threshold",
+                     "Normal",
+                     "Overdispersed"),
+           pch = c(NA, 19, 19),
+           lty = c(2, NA, NA))
+  }
+  
+  # Add summary text
+  mtext(sprintf("Total variables: %d, Overdispersed: %d (%.1f%%)",
+                length(ratios),
+                sum(ratios > threshold),
+                100 * mean(ratios > threshold)),
+        side = 3,
+        line = 0)
+}
+
+
+
