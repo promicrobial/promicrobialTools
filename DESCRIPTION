@@ -1,0 +1,22 @@
+Package: promicrobialTools
+Title: A collection of handy functions for microbiome data analysis
+Version: 0.0.0.9000
+Authors@R: 
+    person("Nathaniel", "Cole", , "nc564@cornell.edu", role = c("aut", "cre", "cph"),
+           comment = c(ORCID = "0000-0002-5132-3681"))
+Description: Numerous useful personal functions used for data analysis, visualisation and utility operations.
+License: MIT + file LICENSE
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.2
+Imports:
+    dplyr,
+    ggplot2,
+    tidyr,
+    rlang,
+    stats,
+    methods,
+    base,
+    graphics,
+    utils,
+    magrittr
