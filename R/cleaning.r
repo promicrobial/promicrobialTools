@@ -12,12 +12,16 @@
 #'
 #' @return A data frame with sanitized column names and character column contents
 #'
+#' @import stringr
+#' @import dplyr
+#' 
 #' @examples
 #' df <- data.frame(
 #'   "Column Name" = c(" TEXT ", "More TEXT"),
 #'   "Another.Column" = c("A B", "C D")
 #' )
 #' sanitiseData(df)
+#' @export
 sanitiseData <- function(df, 
                         convert_spaces_to = "_", 
                         case = tolower,
@@ -67,6 +71,7 @@ sanitiseData <- function(df,
   return(df)
 }
 
+# TODO docs
 # Function to clean column names
 sanitiseColnames <- function(df) {
   cols <- colnames(df)

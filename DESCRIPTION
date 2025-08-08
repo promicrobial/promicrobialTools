@@ -19,7 +19,12 @@ Imports:
     base,
     graphics,
     utils,
-    magrittr
-Suggests:
+    magrittr,
+    gridExtra,
     knitr,
+    data.table,
+    emmeans,
+    stringr,
+    vegan
+Suggests:
     conflicted

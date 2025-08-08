@@ -109,10 +109,10 @@ dune.ano <- with(dune.env, anosim(dune.dist, Management))
 data(mite)
 data(mite.env) 
 mite.dist <- vegdist(mite)
-mite.ano <- with(mite.env, anosim(mite.dist, WatrCont))
+mite.ano <- with(mite.env, anosim(mite.dist, Shrub))
 
 complex_list <- list(dune = dune.ano, mite = mite.ano)
-complex_df <- list_to_df(complex_list, elements = c("statistic", "signif"))
+complex_df <- list_to_df(complex_list, elements = c("statistic", "signif"), nested = TRUE)
 }
 \seealso{
 \code{\link{data.frame}} for base R data frame creation

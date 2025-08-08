@@ -42,9 +42,11 @@ Identifies columns that are common across all data frames or a subset of them,
 with enhanced debugging and flexible matching options.
 }
 \examples{
+\dontrun{
 # Basic usage
 commonCols(dfList)
 
 # With debugging
 commonCols(dfList, debug = TRUE)
+}
 }

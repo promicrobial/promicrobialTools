@@ -76,8 +76,7 @@ calc_summary_stats <- function(x, col, digits = 3) {
 #' data_summary(df, "value", "group")
 #'
 #' @export
-data_summary <- function(data, varname = NULL, groupnames = NULL, 
-                        na.rm = TRUE, digits = 3) {
+data_summary <- function(data, varname = NULL, groupnames = NULL, na.rm = TRUE, digits = 3) {
     # Input validation and conversion
     if (is.vector(data)) {
         if (!is.numeric(data)) stop("Vector must be numeric")
