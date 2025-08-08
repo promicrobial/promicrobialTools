@@ -237,7 +237,7 @@ commonCols <- function(dfList,
 #'
 #' @keywords utilities
 #' @importFrom stats setNames
-list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", exclude = NULL, row_names = NULL, transpose_matrices = FALSE, nested = FALSE) {
+list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", exclude = NULL, row_names = NULL, col_names = NULL, transpose_matrices = FALSE, nested = FALSE) {
     
     # Input validation
     if (!is.list(list_obj)) {
@@ -257,14 +257,17 @@ list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", excl
         
         df <- as.data.frame(mat)
         
-        # Preserve or create column names
+        # Override, preserve or create column names
         if (!is.null(colnames(mat))) {
             colnames(df) <- colnames(mat)
-        } else {
-            colnames(df) <- paste0("V", seq_len(ncol(mat)))
+        } else if (!is.null(col_names)) {
+            if (length(col_names) != ncol(df)) {
+                stop("Length of col_names does not match number of columns")
+            }
+            colnames(df) <- col_names
         }
         
-        # Preserve or create row names
+        # Override, preserve or create row names
         if (!is.null(rownames(mat))) {
             rownames(df) <- rownames(mat)
         } else if (!is.null(row_names)) {
@@ -286,7 +289,7 @@ list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", excl
     }
     
     # Function to find nested elements
-    find_nested_elements <- function(lst, target, parent_name = "") {
+    find_nested_elements <- function(lst, target) {
         if (!is.list(lst)) return(NULL)
         
         if (target %in% names(lst)) {
@@ -298,15 +301,14 @@ list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", excl
             } else {
                 value <- data.frame(value)
             }
-            names(value) <- if (parent_name == "") target else paste(parent_name, target, sep = "_")
+            names(value) <- target
             return(value)
         }
         
         result <- NULL
         for (name in names(lst)) {
             if (is.list(lst[[name]])) {
-                nested_result <- find_nested_elements(lst[[name]], target, 
-                                                   if (parent_name == "") name else paste(parent_name, name, sep = "_"))
+                nested_result <- find_nested_elements(lst[[name]], target)
                 if (!is.null(nested_result)) return(nested_result)
             }
         }
@@ -330,21 +332,28 @@ list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", excl
             }
         }
         
-        # Process each top-level element
+        # Create a data frame for each top-level element
+        df_list <- list()
         for (top_name in top_names) {
+            element_values <- list()
             for (elem in elements) {
-                found <- find_nested_elements(list_obj[[top_name]], elem, top_name)
+                found <- find_nested_elements(list_obj[[top_name]], elem)
                 if (!is.null(found)) {
-                    result_list[[paste(top_name, elem, sep = "_")]] <- found
+                    element_values[[elem]] <- found
                 }
+            }
+            if (length(element_values) > 0) {
+                df_list[[top_name]] <- do.call(cbind, element_values)
             }
         }
         
-        if (length(result_list) == 0) {
+        if (length(df_list) == 0) {
             stop("No matching elements found")
         }
         
-        df <- do.call(cbind, result_list)
+        # Combine all data frames and set row names
+        df <- do.call(rbind, df_list)
+        rownames(df) <- names(df_list)
         
     } else {
         # Original non-nested processing
@@ -379,13 +388,27 @@ list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", excl
     
     # Apply prefix/suffix to column names
     if (!is.null(prefix) || !is.null(suffix)) {
+      # Handle column names
+      if (!is.null(col_names)) {
+          if (length(col_names) != ncol(df)) {
+              stop("Length of col_names does not match number of columns")
+          }
+          colnames(df) <- col_names
+      } else {
         col_names <- colnames(df)
+      }
         if (!is.null(prefix)) col_names <- paste0(prefix, col_names)
         if (!is.null(suffix)) col_names <- paste0(col_names, suffix)
         colnames(df) <- col_names
+    } else {
+      if (!is.null(col_names)) {
+          if (length(col_names) != ncol(df)) {
+              stop("Length of col_names does not match number of columns")
+          }
+          colnames(df) <- col_names
+      }
     }
-    
-    # Handle row names
+  
     if (!is.null(row_names)) {
         if (length(row_names) != nrow(df)) {
             stop("Length of row_names does not match number of rows")
