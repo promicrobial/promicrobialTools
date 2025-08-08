@@ -200,6 +200,20 @@ commonCols <- function(dfList,
 #' 
 #' nested_df <- list_to_df(nested_list)
 #' 
+#' # Complex nested lists
+#' library(vegan)
+#' data(dune)
+#' data(dune.env) 
+#' dune.dist <- vegdist(dune)
+#' dune.ano <- with(dune.env, anosim(dune.dist, Management))
+#' 
+#' data(mite)
+#' data(mite.env) 
+#' mite.dist <- vegdist(mite)
+#' mite.ano <- with(mite.env, anosim(mite.dist, WatrCont))
+#' 
+#' complex_list <- list(dune = dune.ano, mite = mite.ano)
+#' complex_df <- list_to_df(complex_list, elements = c("statistic", "signif"))
 #' @export
 #'
 #' @seealso 
@@ -270,6 +284,7 @@ list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", excl
         
         return(df)
     }
+ 
     # Handle element selection
     if (is.null(elements)) {
         selected_elements <- names(list_obj)
