@@ -237,9 +237,9 @@ commonCols <- function(dfList,
 #'
 #' @keywords utilities
 #' @importFrom stats setNames
-list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", exclude = NULL, row_names = NULL, transpose_matrices = FALSE) {
+list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", exclude = NULL, row_names = NULL, transpose_matrices = FALSE, nested = FALSE) {
     
-  # Input validation
+    # Input validation
     if (!is.list(list_obj)) {
         stop(sprintf("Input must be a list, got %s instead", class(list_obj)))
     }
@@ -284,51 +284,111 @@ list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", excl
         
         return(df)
     }
- 
-    # Handle element selection
-    if (is.null(elements)) {
-        selected_elements <- names(list_obj)
+    
+    # Function to find nested elements
+    find_nested_elements <- function(lst, target, parent_name = "") {
+        if (!is.list(lst)) return(NULL)
+        
+        if (target %in% names(lst)) {
+            value <- lst[[target]]
+            if (is.matrix(value)) {
+                value <- as.data.frame(value)
+            } else if (is.list(value)) {
+                value <- as.data.frame(value)
+            } else {
+                value <- data.frame(value)
+            }
+            names(value) <- if (parent_name == "") target else paste(parent_name, target, sep = "_")
+            return(value)
+        }
+        
+        result <- NULL
+        for (name in names(lst)) {
+            if (is.list(lst[[name]])) {
+                nested_result <- find_nested_elements(lst[[name]], target, 
+                                                   if (parent_name == "") name else paste(parent_name, name, sep = "_"))
+                if (!is.null(nested_result)) return(nested_result)
+            }
+        }
+        return(NULL)
+    }
+    
+    if (nested) {
+        # Handle nested list processing
+        result_list <- list()
+        top_names <- if (!is.null(exclude)) {
+            setdiff(names(list_obj), exclude)
+        } else {
+            names(list_obj)
+        }
+        
+        # If no elements specified, try to find common elements
+        if (is.null(elements)) {
+            elements <- unique(unlist(lapply(list_obj, function(x) names(x))))
+            if (length(elements) == 0) {
+                stop("No elements specified and couldn't find any nested elements")
+            }
+        }
+        
+        # Process each top-level element
+        for (top_name in top_names) {
+            for (elem in elements) {
+                found <- find_nested_elements(list_obj[[top_name]], elem, top_name)
+                if (!is.null(found)) {
+                    result_list[[paste(top_name, elem, sep = "_")]] <- found
+                }
+            }
+        }
+        
+        if (length(result_list) == 0) {
+            stop("No matching elements found")
+        }
+        
+        df <- do.call(cbind, result_list)
+        
     } else {
-        if (!all(elements %in% names(list_obj))) {
-            missing <- elements[!elements %in% names(list_obj)]
-            stop("The following requested elements do not exist in the list: ", 
-                 paste(missing, collapse = ", "))
+        # Original non-nested processing
+        if (is.null(elements)) {
+            selected_elements <- names(list_obj)
+        } else {
+            if (!all(elements %in% names(list_obj))) {
+                missing <- elements[!elements %in% names(list_obj)]
+                stop("The following requested elements do not exist in the list: ", 
+                     paste(missing, collapse = ", "))
+            }
+            selected_elements <- elements
         }
-        selected_elements <- elements
-    }
-    
-    # Handle exclusions
-    if (!is.null(exclude)) {
-        selected_elements <- selected_elements[!selected_elements %in% exclude]
-        if (length(selected_elements) == 0) {
-            stop("No elements remain after exclusions")
+        
+        if (!is.null(exclude)) {
+            selected_elements <- selected_elements[!selected_elements %in% exclude]
+            if (length(selected_elements) == 0) {
+                stop("No elements remain after exclusions")
+            }
         }
+        
+        sub_list <- list_obj[selected_elements]
+        lengths <- sapply(sub_list, length)
+        if (length(unique(lengths)) > 1) {
+            stop("Selected elements have different lengths: \n",
+                 paste(names(lengths), ":", lengths, collapse = "\n"))
+        }
+        
+        df <- as.data.frame(do.call(cbind, sub_list))
+        colnames(df) <- names(sub_list)
     }
     
-    # Select the subset of the list
-    sub_list <- list_obj[selected_elements]
-    
-    # Check lengths of selected elements
-    lengths <- sapply(sub_list, length)
-    if (length(unique(lengths)) > 1) {
-        stop("Selected elements have different lengths: \n",
-             paste(names(lengths), ":", lengths, collapse = "\n"))
+    # Apply prefix/suffix to column names
+    if (!is.null(prefix) || !is.null(suffix)) {
+        col_names <- colnames(df)
+        if (!is.null(prefix)) col_names <- paste0(prefix, col_names)
+        if (!is.null(suffix)) col_names <- paste0(col_names, suffix)
+        colnames(df) <- col_names
     }
-    
-    # Create dataframe
-    df <- as.data.frame(do.call(cbind, sub_list))
-    
-    # Handle column names
-    col_names <- names(sub_list)
-    if (!is.null(prefix)) col_names <- paste0(prefix, col_names)
-    if (!is.null(suffix)) col_names <- paste0(col_names, suffix)
-    colnames(df) <- col_names
     
     # Handle row names
     if (!is.null(row_names)) {
         if (length(row_names) != nrow(df)) {
-            stop("Length of row_names (", length(row_names), 
-                 ") does not match number of rows (", nrow(df), ")")
+            stop("Length of row_names does not match number of rows")
         }
         rownames(df) <- row_names
     }
