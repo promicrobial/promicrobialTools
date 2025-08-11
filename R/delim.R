@@ -37,7 +37,8 @@
 #'
 #' # With row names and 2 decimal places
 #' delim(df, row.names = TRUE, digits = 2)
-#'
+
+#' @rdname delim
 #' @export
 delim <- function(x,
                        format = c("csv", "tsv", "custom"),
@@ -129,6 +130,8 @@ delim <- function(x,
     return(result)
 }
 
+#' @rdname csv
+#' @export
 csv <- function(x,
                        format = "csv",
                        sep = ",",
@@ -213,6 +216,8 @@ csv <- function(x,
     return(result)
 }
 
+#' @rdname tsv
+#' @export
 tsv <- function(x,
                        format = "tsv",
                        sep = "\t",
