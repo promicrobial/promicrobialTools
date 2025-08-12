@@ -1,11 +1,11 @@
-#' Convert Data Frame to Delimited Text Format
+#' Convert Data Frame, Matrix, or Vector to Delimited Text Format
 #'
 #' @description
-#' Converts a data frame or matrix to a delimited text format (CSV, TSV, or custom separator).
+#' Converts a data frame, matrix, or vector to a delimited text format (CSV, TSV, or custom separator).
 #' Similar to print() or kable() but returns a string formatted for direct writing to file
 #' or displaying in console with chosen delimiter.
 #'
-#' @param x A data frame or matrix to convert
+#' @param x A data frame, matrix, or vector to convert
 #' @param format Output format, one of "csv", "tsv", or "custom" (default: "csv")
 #' @param sep Custom separator to use when format="custom" (default: ",")
 #' @param row.names Logical indicating whether to include row names (default: FALSE)
@@ -19,7 +19,12 @@
 #' @return A character string containing the formatted data
 #'
 #' @examples
-#' # Create example data frame
+#' # Vector examples
+#' delim(1:5)
+#' delim(c("a", "b", "c"))
+#' delim(c(1.234, 5.678, 9.012), digits = 2)
+#'
+#' # Data frame examples
 #' df <- data.frame(
 #'   A = c(1, 2, 3),
 #'   B = c("a", "b", "c"),
@@ -51,10 +56,54 @@ delim <- function(x,
                        scientific = FALSE,
                        digits = NULL) {
     
-    # Input validation
+    # Input validation and conversion
     format <- match.arg(format)
+    
+    # Determine separator
+    sep <- switch(format,
+                 csv = ",",
+                 tsv = "\t",
+                 custom = sep)
+    
+    # Handle vectors differently
+    if (is.vector(x) || is.factor(x)) {
+        # Format vector values
+        values <- as.character(x)
+        
+        # Format numeric values if needed
+        if (is.numeric(x)) {
+            if (!is.null(digits)) {
+                values <- as.character(round(x, digits))
+            }
+            if (!scientific) {
+                values <- format(as.numeric(values), scientific = FALSE)
+            }
+        }
+        
+        # Handle NA values
+        values[is.na(values)] <- na
+        
+        # Trim if requested
+        if (trim) {
+            values <- trimws(values)
+        }
+        
+        # Quote values if requested
+        if (quote) {
+            needs_quotes <- grepl(sep, values) | grepl('"', values) | grepl('\n', values)
+            values[needs_quotes] <- sprintf('"%s"', gsub('"', '""', values[needs_quotes]))
+        }
+        
+        # Create result
+        result <- paste(values, collapse = sep)
+        
+        class(result) <- c("delim_output", "character")
+        return(result)
+    }
+    
+    # Handle data frames and matrices
     if (!is.data.frame(x) && !is.matrix(x)) {
-        stop("Input must be a data frame or matrix")
+        stop("Input must be a vector, factor, data frame or matrix")
     }
     
     # Convert matrix to data frame
@@ -143,77 +192,9 @@ csv <- function(x,
                        scientific = FALSE,
                        digits = NULL) {
     
-    # Input validation
-    format <- match.arg(format)
-    if (!is.data.frame(x) && !is.matrix(x)) {
-        stop("Input must be a data frame or matrix")
-    }
-    
-    # Convert matrix to data frame
-    if (is.matrix(x)) {
-        x <- as.data.frame(x)
-    }
-       
-    # Format numeric values
-    if (!is.null(digits)) {
-        for (i in seq_along(x)) {
-            if (is.numeric(x[[i]])) {
-                x[[i]] <- round(x[[i]], digits)
-            }
-        }
-    }
-    
-    # Handle scientific notation
-    if (!scientific) {
-        for (i in seq_along(x)) {
-            if (is.numeric(x[[i]])) {
-                x[[i]] <- format(x[[i]], scientific = FALSE)
-            }
-        }
-    }
-    
-    # Convert NA values
-    x[] <- lapply(x, function(col) {
-        ifelse(is.na(col), na, as.character(col))
-    })
-    
-    # Trim whitespace if requested
-    if (trim) {
-        x[] <- lapply(x, trimws)
-    }
-    
-    # Add row names if requested
-    if (row.names) {
-        x <- cbind(row.names = rownames(x), x)
-    }
-    
-    # Quote values if requested
-    if (quote) {
-        x[] <- lapply(x, function(col) {
-            needs_quotes <- grepl(sep, col) | grepl('"', col) | grepl('\n', col)
-            ifelse(needs_quotes,
-                  sprintf('"%s"', gsub('"', '""', col)),
-                  col)
-        })
-    }
-    
-    # Create header
-    header <- if (col.names) paste(colnames(x), collapse = sep) else NULL
-    
-    # Create rows
-    rows <- apply(x, 1, paste, collapse = sep)
-    
-    # Combine header and rows
-    result <- if (col.names) {
-        paste(c(header, rows), collapse = "\n")
-    } else {
-        paste(rows, collapse = "\n")
-    }
-    
-    # Add class for potential method dispatch
-    class(result) <- c("delim_output", "character")
-    
-    return(result)
+    delim(x, format = "csv", sep = sep, row.names = row.names, 
+          col.names = col.names, quote = quote, na = na, 
+          trim = trim, scientific = scientific, digits = digits)
 }
 
 #' @rdname tsv
@@ -229,77 +210,9 @@ tsv <- function(x,
                        scientific = FALSE,
                        digits = NULL) {
     
-    # Input validation
-    format <- match.arg(format)
-    if (!is.data.frame(x) && !is.matrix(x)) {
-        stop("Input must be a data frame or matrix")
-    }
-    
-    # Convert matrix to data frame
-    if (is.matrix(x)) {
-        x <- as.data.frame(x)
-    }
-       
-    # Format numeric values
-    if (!is.null(digits)) {
-        for (i in seq_along(x)) {
-            if (is.numeric(x[[i]])) {
-                x[[i]] <- round(x[[i]], digits)
-            }
-        }
-    }
-    
-    # Handle scientific notation
-    if (!scientific) {
-        for (i in seq_along(x)) {
-            if (is.numeric(x[[i]])) {
-                x[[i]] <- format(x[[i]], scientific = FALSE)
-            }
-        }
-    }
-    
-    # Convert NA values
-    x[] <- lapply(x, function(col) {
-        ifelse(is.na(col), na, as.character(col))
-    })
-    
-    # Trim whitespace if requested
-    if (trim) {
-        x[] <- lapply(x, trimws)
-    }
-    
-    # Add row names if requested
-    if (row.names) {
-        x <- cbind(row.names = rownames(x), x)
-    }
-    
-    # Quote values if requested
-    if (quote) {
-        x[] <- lapply(x, function(col) {
-            needs_quotes <- grepl(sep, col) | grepl('"', col) | grepl('\n', col)
-            ifelse(needs_quotes,
-                  sprintf('"%s"', gsub('"', '""', col)),
-                  col)
-        })
-    }
-    
-    # Create header
-    header <- if (col.names) paste(colnames(x), collapse = sep) else NULL
-    
-    # Create rows
-    rows <- apply(x, 1, paste, collapse = sep)
-    
-    # Combine header and rows
-    result <- if (col.names) {
-        paste(c(header, rows), collapse = "\n")
-    } else {
-        paste(rows, collapse = "\n")
-    }
-    
-    # Add class for potential method dispatch
-    class(result) <- c("delim_output", "character")
-    
-    return(result)
+    delim(x, format = "tsv", sep = sep, row.names = row.names, 
+          col.names = col.names, quote = quote, na = na, 
+          trim = trim, scientific = scientific, digits = digits)
 }
 
 #' Print method for delim_output
