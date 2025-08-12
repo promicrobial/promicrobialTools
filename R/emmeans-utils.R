@@ -111,3 +111,88 @@ emm_bind <- function(
 
   return(table)
 }
+
+#' Extract Model Matrix from emmeans Contrast Object
+#'
+#' @description
+#' Extracts and returns the model matrix from an emmeans contrast object. This function
+#' provides a convenient way to access the underlying model matrix used in the contrast
+#' calculations.
+#'
+#' @param model An object of class 'emmGrid' resulting from a call to emmeans::contrast()
+#'
+#' @return A matrix containing the model matrix from the emmeans contrast.
+#'   If the model matrix is not available, returns NULL with a warning.
+#'
+#' @details
+#' The function accesses the model matrix stored in the 'model.info' slot of an emmeans
+#' contrast object. The output is useful for further statistical analysis or visualization
+#' purposes and can be easily integrated into both HTML and PDF outputs when using Quarto.
+#'
+#' @examples
+#' \dontrun{
+#' # Fit a model
+#' mod <- lm(weight ~ group, data = PlantGrowth)
+#' 
+#' # Calculate emmeans and contrasts
+#' library(emmeans)
+#' emm <- emmeans(mod, "group")
+#' contrasts <- contrast(emm)
+#' 
+#' # Extract model matrix
+#' matrix <- get_model_matrix(contrasts)
+#' }
+#'
+#' @export
+#' @importFrom methods is
+get_model_matrix <- function(model) {
+  # Input validation
+  if (is.null(model)) {
+    stop("Input model cannot be NULL")
+  }
+  
+  if (!methods::is(model, "emmGrid")) {
+    stop("Input must be an emmeans contrast object (class 'emmGrid')")
+  }
+  
+  # Check if model.info exists and contains model.matrix
+  if (!exists("model.info", model) || 
+      is.null(model@model.info) || 
+      is.null(model@model.info$model.matrix)) {
+    warning("Model matrix not found in the provided emmeans contrast object")
+    return(NULL)
+  }
+  
+  # Convert to a standard matrix if not already
+  matrix <- as.matrix(model@model.info$model.matrix)
+  
+  # Add attributes for better printing in various formats
+  attr(matrix, "title") <- "Model Matrix from emmeans Contrast"
+  class(matrix) <- c("model_matrix", class(matrix))
+  
+  return(matrix)
+}
+
+#' Print method for model_matrix objects
+#'
+#' @param x A model_matrix object
+#' @param ... Additional arguments passed to print
+#'
+#' @export
+print.model_matrix <- function(x, ...) {
+  cat("Model Matrix from emmeans Contrast:\n\n")
+  NextMethod()
+}
+
+#' Format method for model_matrix objects in knitr
+#'
+#' @param x A model_matrix object
+#' @param ... Additional arguments passed to knitr::kable
+#'
+#' @export
+knit_print.model_matrix <- function(x, ...) {
+  if (requireNamespace("knitr", quietly = TRUE)) {
+    return(knitr::kable(x, caption = attr(x, "title"), ...))
+  }
+  print(x)
+}
