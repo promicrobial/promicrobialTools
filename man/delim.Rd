@@ -2,7 +2,7 @@
 % Please edit documentation in R/delim.R
 \name{delim}
 \alias{delim}
-\title{Convert Data Frame to Delimited Text Format}
+\title{Convert Data Frame, Matrix, or Vector to Delimited Text Format}
 \usage{
 delim(
   x,
@@ -18,7 +18,7 @@ delim(
 )
 }
 \arguments{
-\item{x}{A data frame or matrix to convert}
+\item{x}{A data frame, matrix, or vector to convert}
 
 \item{format}{Output format, one of "csv", "tsv", or "custom" (default: "csv")}
 
@@ -42,12 +42,17 @@ delim(
 A character string containing the formatted data
 }
 \description{
-Converts a data frame or matrix to a delimited text format (CSV, TSV, or custom separator).
+Converts a data frame, matrix, or vector to a delimited text format (CSV, TSV, or custom separator).
 Similar to print() or kable() but returns a string formatted for direct writing to file
 or displaying in console with chosen delimiter.
 }
 \examples{
-# Create example data frame
+# Vector examples
+delim(1:5)
+delim(c("a", "b", "c"))
+delim(c(1.234, 5.678, 9.012), digits = 2)
+
+# Data frame examples
 df <- data.frame(
   A = c(1, 2, 3),
   B = c("a", "b", "c"),
