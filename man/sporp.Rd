@@ -2,12 +2,12 @@
 % Please edit documentation in R/sparsity-utils.R
 \name{sporp}
 \alias{sporp}
-\title{Calculate Matrix Sparsity Proportions}
+\title{Calculate Matrix or Vector Sparsity Proportions}
 \usage{
-sporp(mat, digits = 2, silent = FALSE)
+sporp(x, digits = 2, silent = FALSE)
 }
 \arguments{
-\item{mat}{A numeric matrix}
+\item{x}{A numeric matrix or vector}
 
 \item{digits}{Integer indicating the number of decimal places to round to (default: 2)}
 
@@ -23,19 +23,22 @@ Otherwise prints the percentages and returns invisible(NULL).
 }
 \description{
 Calculates and displays the proportion of zero and non-zero elements
-in a matrix. This function is useful for determining the sparsity level of
-matrices, which can be important for computational efficiency and storage
-considerations.
+in a matrix or numeric vector. This function is useful for determining the sparsity level,
+which can be important for computational efficiency and storage considerations.
 }
 \details{
 The function calculates sparsity by counting the number of zero elements
-and dividing by the total number of elements in the matrix. The density
-(proportion of non-zero elements) is calculated as 1 minus the sparsity.
+and dividing by the total number of elements. The density (proportion of non-zero
+elements) is calculated as 1 minus the sparsity.
 }
 \examples{
 # Create a sparse matrix
 m <- matrix(c(0,0,1,0,2,0,0,0,3), nrow=3)
 sporp(m)
+
+# Using with a vector
+v <- c(0, 1, 0, 0, 2, 0)
+sporp(v)
 
 # Return values instead of printing
 result <- sporp(m, silent=TRUE)
@@ -47,5 +50,5 @@ sporp(m2, digits=3)
 
 }
 \seealso{
-\code{\link{matrix}}
+\code{\link{matrix}}, \code{\link{vector}}
 }
