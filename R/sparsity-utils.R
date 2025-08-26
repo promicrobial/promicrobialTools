@@ -66,3 +66,71 @@ sporp <- function(x, digits = 2, silent = FALSE){
         return(invisible(NULL))
     }
 }
+
+#' Generate Random Sparse Matrix or Vector
+#'
+#' @description Creates a random sparse matrix or vector with user-specified density 
+#' and value range. Values are uniformly distributed between min and max, with zeros 
+#' inserted to achieve the desired sparsity.
+#'
+#' @param n numeric. Total number of observations to generate
+#' @param min numeric. Minimum value for random numbers (default: 0)
+#' @param max numeric. Maximum value for random numbers (default: 1)
+#' @param d numeric. Desired density as a proportion (e.g., 10 means 10% non-zero values) (default: 10)
+#' @param mat logical. If TRUE returns a matrix, if FALSE returns a vector (default: TRUE)
+#' @param nrow numeric. Number of rows for matrix output. If NULL, defaults to 10 (default: NULL)
+#'
+#' @return If mat=TRUE, returns a matrix with dimensions nrow x (n/nrow). 
+#' If mat=FALSE, returns a vector of length n. Both contain random values between 
+#' min and max, with d% of elements being nonzero.
+#'
+#' @examples
+#' # Generate a sparse vector with 100 elements, 10% nonzeros
+#' randspar(n = 100, mat = FALSE)
+#'
+#' # Generate a 5x20 sparse matrix with 20% nonzeros
+#' randspar(n = 100, d = 20, nrow = 5)
+#'
+#' # Generate a sparse matrix with values between -1 and 1
+#' randspar(n = 100, min = -1, max = 1)
+#'
+#' @export
+randspar <- function(n, min = 0, max = 1, d = 10, mat = TRUE, nrow = NULL){
+    # Validate inputs
+    if (!is.numeric(n) || n <= 0) 
+        stop("'n' must be a positive number")
+    if (!is.numeric(d) || d < 0 || d > 100) 
+        stop("'d' must be between 0 and 100")
+    if (min >= max) 
+        stop("'min' must be less than 'max'")
+    if (!is.null(nrow) && (nrow <= 0 || n %% nrow != 0))
+        stop("'nrow' must be positive and 'n' must be divisible by 'nrow'")
+
+    rand <- runif(n = n, min = min, max = max)
+    d <- d/100 #density proportion i.e. proportion of non-zero values
+    z <- n-(n*d)  #number of zeros needed to create matrix with proportion, p
+    zeros <- rep.int(0,z)
+
+    if(mat == TRUE) {
+        if(!is.null(nrow)){
+            if(n %% nrow != 0) {
+                stop("'n' must be divisible by 'nrow' to create a matrix")
+            }
+            nrow <- nrow
+        }
+        else {
+            nrow <- 10
+            if(n %% nrow != 0) {
+                stop("'n' must be divisible by default nrow (10). To change this set `nrow` manually.")
+            }
+        }
+        m <- matrix(sample(c(sample(rand, size=n-z), zeros)), nrow = nrow)
+    } 
+    else {
+        m <- sample(c(sample(rand, size=n-z), zeros))
+    }
+    
+    mat[mat==0] <- 0 #make zero formatting consistent across matrix
+    
+    return(m)
+}
