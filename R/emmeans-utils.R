@@ -245,6 +245,7 @@ knit_print.model_matrix <- function(x, ...) {
 #' @export
 create_emmeans <- function(model, 
                           specs, 
+                          by = NULL,
                           at_values = NULL,
                           adjust_method = "sidak",
                           weights = "proportional",
@@ -257,6 +258,7 @@ create_emmeans <- function(model,
   emm <- emmeans(
     model,
     specs = specs,
+    by = by,
     at = at_values,
     adjust = adjust_method,
     weights = weights,
@@ -386,8 +388,8 @@ create_contrasts <- function(emm_object,
 #' trends across all observations.
 #'
 #' @examples
-#' fiber.lm <- lm(strength ~ diameter*machine, data=fiber)
 #' \dontrun{
+#' fiber.lm <- lm(strength ~ diameter*machine, data=fiber)
 #' # Simple time trends
 #' trends <- create_trends(
 #'   fiber.lm, 

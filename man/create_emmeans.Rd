@@ -7,6 +7,7 @@
 create_emmeans(
   model,
   specs,
+  by = NULL,
   at_values = NULL,
   adjust_method = "sidak",
   weights = "proportional",

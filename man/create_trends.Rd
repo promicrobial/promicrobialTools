@@ -39,8 +39,8 @@ custom labeling capabilities. When specs is NULL, it defaults to computing
 trends across all observations.
 }
 \examples{
-fiber.lm <- lm(strength ~ diameter*machine, data=fiber)
 \dontrun{
+fiber.lm <- lm(strength ~ diameter*machine, data=fiber)
 # Simple time trends
 trends <- create_trends(
   fiber.lm, 
