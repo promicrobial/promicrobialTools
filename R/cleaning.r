@@ -81,6 +81,7 @@ sanitiseColnames <- function(df) {
     str_remove("^\\.+")  %>%  
     str_replace_all("\\.+", "_") %>%
     str_replace_all("\\s+", "_") %>%
+    str_replace_all("_+", "_") %>%
     str_trim("both") %>%
     tolower()
 
