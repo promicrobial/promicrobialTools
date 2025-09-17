@@ -346,11 +346,11 @@ summary.varDisp <- function(object, ...) {
 #'
 #' @export
 plot.varDisp <- function(x, 
-                              type = c("histogram", "dot"),
-                              threshold = 1,
-                              show_labels = TRUE,
-                              log_transform = TRUE,
-                              ...) {
+                         type = c("histogram", "dot"),
+                         threshold = 1,
+                         show_labels = TRUE,
+                         log_transform = TRUE,
+                         ...) {
   
   # Ensure x has the correct structure
   if (!inherits(x, "varDisp")) {
@@ -362,26 +362,63 @@ plot.varDisp <- function(x,
   
   # Extract ratio data
   ratios <- x$ratio
+  
+  # Check for and handle missing values
+  if (any(is.na(ratios)) || any(is.infinite(ratios))) {
+    warning("Missing or infinite values detected in ratios. These will be removed for plotting.")
+    valid_indices <- is.finite(ratios)
+    ratios <- ratios[valid_indices]
+    
+    # If we have variable names, subset them too
+    if (!is.null(x$variable)) {
+      x$variable <- x$variable[valid_indices]
+    }
+  }
+  
+  # Check if we have any data left
+  if (length(ratios) == 0) {
+    stop("No valid data points to plot after removing missing/infinite values")
+  }
 
   # Log transform (default)
   if (log_transform) {
-      plot_ratios <- log10(ratios)
-      x_label <- "log10(Variance-to-Mean Ratio)"
-      threshold_line <- log10(threshold)
+    # Check for non-positive values before log transformation
+    if (any(ratios <= 0)) {
+      warning("Non-positive values detected. Adding small constant before log transformation.")
+      ratios <- ratios + 1e-10
+    }
+    
+    plot_ratios <- log10(ratios)
+    x_label <- "log10(Variance-to-Mean Ratio)"
+    threshold_line <- log10(threshold)
   } else {
-      plot_ratios <- ratios
-      x_label <- "Variance-to-Mean Ratio"
-      threshold_line <- threshold
+    plot_ratios <- ratios
+    x_label <- "Variance-to-Mean Ratio"
+    threshold_line <- threshold
+  }
+  
+  # Final check for valid plot data
+  if (any(is.na(plot_ratios)) || any(is.infinite(plot_ratios))) {
+    stop("Invalid values in plot data after transformation")
   }
       
   if (type == "histogram") {
-    # Create histogram
-    hist(plot_ratios,
-         main = "Distribution of Variance-to-Mean Ratios",
-         xlab = x_label,
-         ylab = "Frequency",
-         breaks = "FD",  # Freedman-Diaconis rule for bin width
-         ...)
+    # Create histogram with better error handling
+    tryCatch({
+      hist(plot_ratios,
+           main = "Distribution of Variance-to-Mean Ratios",
+           xlab = x_label,
+           ylab = "Frequency",
+           breaks = "FD",  # Freedman-Diaconis rule for bin width
+           ...)
+    }, error = function(e) {
+      # Fallback to default breaks if FD fails
+      hist(plot_ratios,
+           main = "Distribution of Variance-to-Mean Ratios",
+           xlab = x_label,
+           ylab = "Frequency",
+           ...)
+    })
     
     # Add threshold line
     abline(v = threshold_line, 
@@ -392,15 +429,15 @@ plot.varDisp <- function(x,
     legend("topright",
            legend = c("Threshold", 
                      sprintf("Overdispersed (n=%d)", 
-                             sum(plot_ratios > threshold_line))),
+                             sum(plot_ratios > threshold_line, na.rm = TRUE))),
            lty = c(2, 1))
     
   } else if (type == "dot") {
     # Create dot plot
     plot(plot_ratios,
          main = "Variance-to-Mean Ratios by Variable",
-         ylab = "Variance-to-Mean Ratio",
-         xlab = x_label,
+         ylab = x_label,  # Fixed: was showing x_label on y-axis
+         xlab = "Variable Index",
          pch = 19,
          ...)
     
@@ -411,8 +448,8 @@ plot.varDisp <- function(x,
     
     # Add variable labels if requested
     if (show_labels && !is.null(x$variable)) {
-      text(1:length(ratios),
-           ratios,
+      text(1:length(plot_ratios),
+           plot_ratios,
            labels = x$variable,
            pos = 4,
            cex = 0.8)
@@ -427,11 +464,12 @@ plot.varDisp <- function(x,
            lty = c(2, NA, NA))
   }
   
-  # Add summary text
+  # Add summary text (use original ratios for accurate counts)
+  original_ratios <- x$ratio[is.finite(x$ratio)]
   mtext(sprintf("Total variables: %d, Overdispersed: %d (%.1f%%)",
-                length(ratios),
-                sum(ratios > threshold),
-                100 * mean(ratios > threshold)),
+                length(original_ratios),
+                sum(original_ratios > threshold, na.rm = TRUE),
+                100 * mean(original_ratios > threshold, na.rm = TRUE)),
         side = 3,
         line = 0)
 }
