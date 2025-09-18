@@ -62,6 +62,8 @@ get_names <- function(x, verbose=TRUE) {
 
 #from toupper doc examples
 capwords <- function(s, strict = FALSE) {
+    s <- as.character(s)
+    
     cap <- function(s) paste(toupper(substring(s, 1, 1)),
                   {s <- substring(s, 2); if(strict) tolower(s) else s},
                              sep = "", collapse = " " )
