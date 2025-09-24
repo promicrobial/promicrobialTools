@@ -136,10 +136,10 @@ or_to_cohens_d <- function(OR, P0) {
 #' contrasts_zi <- pairs(emm_zi)
 #'
 #' # Get summary with effect sizes
-#' results <- summarize_zi_contrasts(emm_zi, contrasts_zi, zi_model)
+#' results <- summarise_zi_contrasts(emm_zi, contrasts_zi, zi_model)
 #'
 #' # Format for publication
-#' results_table <- summarize_zi_contrasts(emm_zi, contrasts_zi, zi_model,
+#' results_table <- summarise_zi_contrasts(emm_zi, contrasts_zi, zi_model,
 #'                                        format = "kable")
 #' }
 #'
@@ -148,7 +148,7 @@ or_to_cohens_d <- function(OR, P0) {
 #' #| label: zi-effects
 #' #| tbl-cap: "Zero-Inflation Component Effect Sizes"
 #'
-#' summarize_zi_contrasts(emm_zi, contrasts_zi, model, 
+#' summarise_zi_contrasts(emm_zi, contrasts_zi, model, 
 #'                       format = "kable")
 #' ```
 #'
@@ -156,7 +156,7 @@ or_to_cohens_d <- function(OR, P0) {
 #' @importFrom stats confint qnorm
 #' @importFrom emmeans emmeans pairs
 #' @export
-summarize_zi_contrasts <- function(emm_zi, 
+summarise_zi_contrasts <- function(emm_zi, 
                                   contrasts_zi, 
                                   model,
                                   effect_sizes = "both",
@@ -237,3 +237,6 @@ summarize_zi_contrasts <- function(emm_zi,
     
     return(contrast_summary)
 }
+#' @rdname summarise_zi_contrasts
+#' @export
+summarize_zi_contrasts <- summarise_zi_contrasts
