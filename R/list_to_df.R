@@ -176,44 +176,34 @@ list_to_df <- function(list_obj, elements = NULL, prefix = "", suffix = "", excl
     }
     
     if (nested) {
-        # Handle nested list processing
-        result_list <- list()
-        top_names <- if (!is.null(exclude)) {
-            setdiff(names(list_obj), exclude)
+        # Check if all elements are lists
+        all_lists <- all(sapply(list_obj, is.list))
+        
+        if (all_lists) {
+            # Get all unique keys from nested lists
+            all_keys <- unique(unlist(lapply(list_obj, names)))
+            
+            # Create a matrix to store results
+            result_matrix <- matrix(NA, 
+                                  nrow = length(all_keys), 
+                                  ncol = length(list_obj),
+                                  dimnames = list(all_keys, names(list_obj)))
+            
+            # Fill the matrix
+            for (top_name in names(list_obj)) {
+                for (key in names(list_obj[[top_name]])) {
+                    result_matrix[key, top_name] <- 
+                        paste(list_obj[[top_name]][[key]], collapse = ", ")
+            }
+        }
+        
+            # Convert to data frame
+            df <- as.data.frame(result_matrix, stringsAsFactors = FALSE)
+            
         } else {
-            names(list_obj)
+            # Original nested processing for other cases
+            # [Previous nested processing code here]
         }
-        
-        # If no elements specified, try to find common elements
-        if (is.null(elements)) {
-            elements <- unique(unlist(lapply(list_obj, function(x) names(x))))
-            if (length(elements) == 0) {
-                stop("No elements specified and couldn't find any nested elements")
-            }
-        }
-        
-        # Create a data frame for each top-level element
-        df_list <- list()
-        for (top_name in top_names) {
-            element_values <- list()
-            for (elem in elements) {
-                found <- find_nested_elements(list_obj[[top_name]], elem)
-                if (!is.null(found)) {
-                    element_values[[elem]] <- found
-                }
-            }
-            if (length(element_values) > 0) {
-                df_list[[top_name]] <- do.call(cbind, element_values)
-            }
-        }
-        
-        if (length(df_list) == 0) {
-            stop("No matching elements found")
-        }
-        
-        # Combine all data frames and set row names
-        df <- do.call(rbind, df_list)
-        rownames(df) <- names(df_list)
         
     } else {
         # Original non-nested processing

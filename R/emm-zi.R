@@ -139,22 +139,12 @@ or_to_cohens_d <- function(OR, P0) {
 #' results <- summarise_zi_contrasts(emm_zi, contrasts_zi, zi_model)
 #'
 #' # Format for publication
-#' results_table <- summarise_zi_contrasts(emm_zi, contrasts_zi, zi_model,
-#'                                        format = "kable")
+#' results_table <- summarise_zi_contrasts(emm_zi, contrasts_zi, zi_model, format = "kable")
 #' }
-#'
-#' @section Usage in Quarto/RMarkdown:
-#' ```{r}
-#' #| label: zi-effects
-#' #| tbl-cap: "Zero-Inflation Component Effect Sizes"
-#'
-#' summarise_zi_contrasts(emm_zi, contrasts_zi, model, 
-#'                       format = "kable")
-#' ```
 #'
 #' @importFrom dplyr mutate case_when
 #' @importFrom stats confint qnorm
-#' @importFrom emmeans emmeans pairs
+#' @importFrom emmeans emmeans contrast
 #' @export
 summarise_zi_contrasts <- function(emm_zi, 
                                   contrasts_zi, 
