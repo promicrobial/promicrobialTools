@@ -68,8 +68,8 @@ project_root/
 :::
 
 ::: {.g-col-4}
-### Option 3: Combined (`"both"`)
-**Maximum specificity** - Combines both parent and filename:
+### Option 3: Nested Structure (`"both"`)
+**Maximum organization** - Nested parent/filename structure:
 
 ```
 project_root/
@@ -78,13 +78,14 @@ project_root/
 │   └── regression/
 │       └── linear-model.qmd   # Current file
 └── results/
-    └── regression_linear-model/  # Combined naming
-        ├── model_results.csv
-        ├── diagnostics.png
-        └── summary.rds
+    └── regression/         # Parent directory
+        └── linear-model/   # Filename subdirectory  
+            ├── model_results.csv
+            ├── diagnostics.png
+            └── summary.rds
 ```
 
-**Best for:** Complex projects with multiple similar analyses
+**Best for:** Complex projects maintaining both context and specificity
 :::
 
 :::
@@ -356,7 +357,7 @@ list_all_results()
 - ✅ Avoiding filename conflicts in collaborative projects
 - ✅ When you want clear 1:1 mapping between documents and results
 
-**Combined (`"both"`)**:
+**Nested Structure (`"both"`)**:
 - ✅ Large, complex projects with many similar analyses
 - ✅ When you need maximum organization specificity
 - ✅ Longitudinal studies with repeated analyses

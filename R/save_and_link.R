@@ -54,14 +54,14 @@ get_project_root <- function() {
 #' Create Results Directory Structure
 #'
 #' Creates a structured results directory in the project root based on either
-#' the parent directory name, the current filename, or both combined.
+#' the parent directory name, the current filename, or both in a nested structure.
 #'
 #' @param directory_naming Character string specifying the naming convention.
 #'   Options are:
 #'   \itemize{
 #'     \item "parent" (default): Uses parent directory name
 #'     \item "filename": Uses current filename without extension
-#'     \item "both": Uses both parent directory and filename separated by underscore
+#'     \item "both": Uses nested structure parent/filename
 #'   }
 #'
 #' @return Character string of the created results directory path
@@ -72,7 +72,7 @@ get_project_root <- function() {
 #' \itemize{
 #'   \item "parent": Parent directory name (e.g., "analysis" from "/path/analysis/file.qmd")
 #'   \item "filename": Current filename without extension (e.g., "file" from "file.qmd")
-#'   \item "both": Combined format (e.g., "analysis_file" from "/path/analysis/file.qmd")
+#'   \item "both": Nested structure (e.g., "analysis/file" from "/path/analysis/file.qmd")
 #' }
 #' 
 #' Uses regex pattern `"(?<=\\/)[^\\/]+(?=\\/[^\\/]+$)"` to extract parent directory name.
@@ -86,7 +86,7 @@ get_project_root <- function() {
 #' # Use current filename
 #' results_dir <- create_results_dir("filename")
 #' 
-#' # Use both parent directory and filename
+#' # Use nested parent/filename structure
 #' results_dir <- create_results_dir("both")
 #' }
 #'
@@ -112,23 +112,25 @@ create_results_dir <- function(directory_naming = "parent") {
     # Get filename without extension
     filename_no_ext <- tools::file_path_sans_ext(basename(current_file))
     
-    # Create subdirectory name based on naming convention
-    subdir <- switch(directory_naming,
+    # Create subdirectory path based on naming convention
+    subdir_path <- switch(directory_naming,
       "parent" = parent_name,
       "filename" = filename_no_ext,
-      "both" = paste(parent_name, filename_no_ext, sep = "_")
+      "both" = file.path(parent_name, filename_no_ext)
     )
     
     # Handle case where parent_name might be NULL (for files in root)
-    if (is.null(subdir) || is.na(subdir) || subdir == "") {
-      subdir <- if (directory_naming == "filename") {
+    if (is.null(subdir_path) || is.na(subdir_path) || subdir_path == "") {
+      subdir_path <- if (directory_naming == "filename") {
         filename_no_ext
+      } else if (directory_naming == "both") {
+        file.path("root", filename_no_ext)
       } else {
         "root"
       }
     }
     
-    filepath <- file.path(project_root, "results", subdir)
+    filepath <- file.path(project_root, "results", subdir_path)
   } else {
     # Fallback if current_input() doesn't work
     filepath <- file.path(project_root, "results", "misc")
@@ -148,7 +150,7 @@ create_results_dir <- function(directory_naming = "parent") {
 #' @param description Character string or NULL. Optional description for the download link.
 #'   If NULL, defaults to "Download {filename}".
 #' @param directory_naming Character string specifying the naming convention.
-#'   Options are "parent" (default), "filename", or "both". 
+#'   Options are "parent" (default), "filename", or "both" (nested parent/filename). 
 #'   Passed to \code{\link{create_results_dir}}.
 #'
 #' @return Invisibly returns the full file path where data was saved
@@ -175,7 +177,7 @@ create_results_dir <- function(directory_naming = "parent") {
 #' # Save as Excel file using filename as subdirectory
 #' save_and_link(iris, "iris.xlsx", "🌸 Iris Dataset", directory_naming = "filename")
 #' 
-#' # Save R object as RDS using both parent and filename
+#' # Save R object as RDS using nested parent/filename structure
 #' model <- lm(mpg ~ wt, data = mtcars)
 #' save_and_link(model, "linear_model.rds", "📊 Linear Model Object", directory_naming = "both")
 #' }
@@ -212,7 +214,9 @@ save_and_link <- function(data, filename, description = NULL, directory_naming =
   }
   
   # Generate relative path from project root
-  relative_path <- file.path("results", basename(results_dir), filename)
+  relative_path <- file.path("results", 
+                            stringr::str_remove(results_dir, paste0(".*", file.path("", "results", ""))),
+                            filename)
   link_text <- if (!is.null(description)) description else paste("Download", filename)
   
   # Return markdown link
@@ -221,13 +225,14 @@ save_and_link <- function(data, filename, description = NULL, directory_naming =
   return(invisible(file_path))
 }
 
+# Update the generate_results_section function similarly
 #' Generate Results Section in Quarto Document
 #'
 #' Automatically generates a formatted results section listing all files in the
 #' current results directory, organized by file type with download links.
 #'
 #' @param directory_naming Character string specifying the naming convention.
-#'   Options are "parent" (default), "filename", or "both". 
+#'   Options are "parent" (default), "filename", or "both" (nested parent/filename). 
 #'   Passed to \code{\link{create_results_dir}}.
 #'
 #' @return NULL (invisibly). The function outputs formatted markdown using \code{cat()}.
@@ -261,7 +266,7 @@ save_and_link <- function(data, filename, description = NULL, directory_naming =
 #' # Generate results section using current filename
 #' generate_results_section("filename")
 #' 
-#' # Generate results section using both parent and filename
+#' # Generate results section using nested parent/filename structure
 #' generate_results_section("both")
 #' }
 #'
@@ -281,10 +286,10 @@ generate_results_section <- function(directory_naming = "parent") {
     return(invisible(NULL))
   }
   
-  # Get the subdirectory name for the header
-  subdir_name <- basename(results_dir)
+  # Get the subdirectory path for the header (relative to results/)
+  subdir_path <- stringr::str_remove(results_dir, paste0(".*", file.path("", "results", "")))
   
-  cat(paste0("\n## 📊 Analysis Results (", subdir_name, ")\n\n"))
+  cat(paste0("\n## 📊 Analysis Results (", subdir_path, ")\n\n"))
   cat("The following files contain detailed results from this analysis:\n\n")
   
   # Group files by type
@@ -328,7 +333,7 @@ generate_results_section <- function(directory_naming = "parent") {
       
       for (file in files_by_type[[type_name]]) {
         # Create relative path from project root
-        relative_path <- file.path("results", subdir_name, file)
+        relative_path <- file.path("results", subdir_path, file)
         full_file_path <- file.path(results_dir, file)
         
         # Get file size and modification time
@@ -360,7 +365,7 @@ generate_results_section <- function(directory_naming = "parent") {
   }
   
   # Add directory info
-  cat(paste0("\n**Results directory:** `", file.path("results", subdir_name), "`\n\n"))
+  cat(paste0("\n**Results directory:** `", file.path("results", subdir_path), "`\n\n"))
 }
 
 #' Get Current Results Directory Path
