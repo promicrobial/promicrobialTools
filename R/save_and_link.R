@@ -54,49 +54,78 @@ get_project_root <- function() {
 #' Create Results Directory Structure
 #'
 #' Creates a structured results directory in the project root based on either
-#' the parent directory name or the current filename.
+#' the parent directory name, the current filename, or both combined.
 #'
-#' @param use_filename Logical. If TRUE, uses the current filename (without extension)
-#'   as the subdirectory name. If FALSE (default), uses the parent directory name.
+#' @param directory_naming Character string specifying the naming convention.
+#'   Options are:
+#'   \itemize{
+#'     \item "parent" (default): Uses parent directory name
+#'     \item "filename": Uses current filename without extension
+#'     \item "both": Uses both parent directory and filename separated by underscore
+#'   }
 #'
 #' @return Character string of the created results directory path
 #'
 #' @details
 #' The function creates a directory structure: `project_root/results/subdirectory/`
-#' where subdirectory is determined by:
+#' where subdirectory is determined by the directory_naming parameter:
 #' \itemize{
-#'   \item use_filename = FALSE: Parent directory name (e.g., "analysis" from "/path/analysis/file.qmd")
-#'   \item use_filename = TRUE: Current filename without extension (e.g., "file" from "file.qmd")
+#'   \item "parent": Parent directory name (e.g., "analysis" from "/path/analysis/file.qmd")
+#'   \item "filename": Current filename without extension (e.g., "file" from "file.qmd")
+#'   \item "both": Combined format (e.g., "analysis_file" from "/path/analysis/file.qmd")
 #' }
 #' 
 #' Uses regex pattern `"(?<=\\/)[^\\/]+(?=\\/[^\\/]+$)"` to extract parent directory name.
 #'
 #' @examples
 #' \dontrun{
-#' # Use parent directory name
+#' # Use parent directory name (default)
 #' results_dir <- create_results_dir()
+#' results_dir <- create_results_dir("parent")
 #' 
 #' # Use current filename
-#' results_dir <- create_results_dir(use_filename = TRUE)
+#' results_dir <- create_results_dir("filename")
+#' 
+#' # Use both parent directory and filename
+#' results_dir <- create_results_dir("both")
 #' }
 #'
 #' @seealso \code{\link{get_project_root}}, \code{\link{save_and_link}}
 #' @export
-create_results_dir <- function(use_filename = FALSE) {
-current_file <- knitr::current_input(dir = TRUE)
+create_results_dir <- function(directory_naming = "parent") {
+  # Validate input
+  valid_options <- c("parent", "filename", "both")
+  if (!directory_naming %in% valid_options) {
+    stop("directory_naming must be one of: ", paste(valid_options, collapse = ", "))
+  }
+  
+  current_file <- knitr::current_input(dir = TRUE)
   project_root <- get_project_root()
   
   if (!is.null(current_file)) {
-    if (use_filename) {
-      # Use filename as subdirectory
-      filename_no_ext <- tools::file_path_sans_ext(basename(current_file))
-      subdir <- filename_no_ext
-    } else {
-      # Use parent directory name as subdirectory
-      subdir <- str_extract(
-        current_file,
-        "(?<=\\/)[^\\/]+(?=\\/[^\\/]+$)"
-      )
+    # Get parent directory name
+    parent_name <- stringr::str_extract(
+      current_file,
+      "(?<=\\/)[^\\/]+(?=\\/[^\\/]+$)"
+    )
+    
+    # Get filename without extension
+    filename_no_ext <- tools::file_path_sans_ext(basename(current_file))
+    
+    # Create subdirectory name based on naming convention
+    subdir <- switch(directory_naming,
+      "parent" = parent_name,
+      "filename" = filename_no_ext,
+      "both" = paste(parent_name, filename_no_ext, sep = "_")
+    )
+    
+    # Handle case where parent_name might be NULL (for files in root)
+    if (is.null(subdir) || is.na(subdir) || subdir == "") {
+      subdir <- if (directory_naming == "filename") {
+        filename_no_ext
+      } else {
+        "root"
+      }
     }
     
     filepath <- file.path(project_root, "results", subdir)
@@ -118,8 +147,9 @@ current_file <- knitr::current_input(dir = TRUE)
 #' @param filename Character string. The filename to save the data as, including extension.
 #' @param description Character string or NULL. Optional description for the download link.
 #'   If NULL, defaults to "Download {filename}".
-#' @param use_filename Logical. If TRUE, uses the current filename as subdirectory.
-#'   If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.
+#' @param directory_naming Character string specifying the naming convention.
+#'   Options are "parent" (default), "filename", or "both". 
+#'   Passed to \code{\link{create_results_dir}}.
 #'
 #' @return Invisibly returns the full file path where data was saved
 #'
@@ -138,23 +168,23 @@ current_file <- knitr::current_input(dir = TRUE)
 #'
 #' @examples
 #' \dontrun{
-#' # Save a data frame as CSV with custom description
+#' # Save a data frame as CSV with custom description (parent directory naming)
 #' data <- mtcars[1:10, ]
 #' save_and_link(data, "car_data.csv", "🚗 Top 10 Cars Dataset")
 #' 
 #' # Save as Excel file using filename as subdirectory
-#' save_and_link(iris, "iris.xlsx", "🌸 Iris Dataset", use_filename = TRUE)
+#' save_and_link(iris, "iris.xlsx", "🌸 Iris Dataset", directory_naming = "filename")
 #' 
-#' # Save R object as RDS
+#' # Save R object as RDS using both parent and filename
 #' model <- lm(mpg ~ wt, data = mtcars)
-#' save_and_link(model, "linear_model.rds", "📊 Linear Model Object")
+#' save_and_link(model, "linear_model.rds", "📊 Linear Model Object", directory_naming = "both")
 #' }
 #'
 #' @seealso \code{\link{create_results_dir}}, \code{\link{generate_results_section}}
 #' @export
-save_and_link <- function(data, filename, description = NULL, use_filename = FALSE) {
-# Create results directory
-  results_dir <- create_results_dir(use_filename = use_filename)
+save_and_link <- function(data, filename, description = NULL, directory_naming = "parent") {
+  # Create results directory
+  results_dir <- create_results_dir(directory_naming = directory_naming)
   project_root <- get_project_root()
   
   # Full file path
@@ -196,8 +226,9 @@ save_and_link <- function(data, filename, description = NULL, use_filename = FAL
 #' Automatically generates a formatted results section listing all files in the
 #' current results directory, organized by file type with download links.
 #'
-#' @param use_filename Logical. If TRUE, uses the current filename as subdirectory.
-#'   If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.
+#' @param directory_naming Character string specifying the naming convention.
+#'   Options are "parent" (default), "filename", or "both". 
+#'   Passed to \code{\link{create_results_dir}}.
 #'
 #' @return NULL (invisibly). The function outputs formatted markdown using \code{cat()}.
 #'
@@ -228,13 +259,16 @@ save_and_link <- function(data, filename, description = NULL, use_filename = FAL
 #' generate_results_section()
 #' 
 #' # Generate results section using current filename
-#' generate_results_section(use_filename = TRUE)
+#' generate_results_section("filename")
+#' 
+#' # Generate results section using both parent and filename
+#' generate_results_section("both")
 #' }
 #'
 #' @seealso \code{\link{create_results_dir}}, \code{\link{save_and_link}}
 #' @export
-generate_results_section <- function(use_filename = FALSE) {
-results_dir <- create_results_dir(use_filename = use_filename)
+generate_results_section <- function(directory_naming = "parent") {
+  results_dir <- create_results_dir(directory_naming = directory_naming)
   project_root <- get_project_root()
   
   if (!dir.exists(results_dir)) {
@@ -334,8 +368,9 @@ results_dir <- create_results_dir(use_filename = use_filename)
 #' Convenience function to get the path of the current results directory
 #' without creating any files or output.
 #'
-#' @param use_filename Logical. If TRUE, uses the current filename as subdirectory.
-#'   If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.
+#' @param directory_naming Character string specifying the naming convention.
+#'   Options are "parent" (default), "filename", or "both". 
+#'   Passed to \code{\link{create_results_dir}}.
 #'
 #' @return Character string of the results directory path
 #'
@@ -345,27 +380,34 @@ results_dir <- create_results_dir(use_filename = use_filename)
 #'
 #' @examples
 #' \dontrun{
-#' # Get current results directory path
+#' # Get current results directory path (parent directory naming)
 #' results_path <- get_results_dir()
 #' print(results_path)
 #' 
+#' # Use filename-based naming
+#' results_path <- get_results_dir("filename")
+#' 
+#' # Use both parent and filename
+#' results_path <- get_results_dir("both")
+#' 
 #' # Use in other file operations
-#' results_path <- get_results_dir(use_filename = TRUE)
+#' results_path <- get_results_dir("both")
 #' file.copy("external_file.csv", file.path(results_path, "copied_file.csv"))
 #' }
 #'
 #' @seealso \code{\link{create_results_dir}}
 #' @export
-get_results_dir <- function(use_filename = FALSE) {
-return(create_results_dir(use_filename = use_filename))
+get_results_dir <- function(directory_naming = "parent") {
+  return(create_results_dir(directory_naming = directory_naming))
 }
 
 #' Clean Results Directory
 #'
 #' Removes all files from the current results directory with optional confirmation prompt.
 #'
-#' @param use_filename Logical. If TRUE, uses the current filename as subdirectory.
-#'   If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.
+#' @param directory_naming Character string specifying the naming convention.
+#'   Options are "parent" (default), "filename", or "both". 
+#'   Passed to \code{\link{create_results_dir}}.
 #' @param confirm Logical. If TRUE (default), prompts user for confirmation before deleting files.
 #'   If FALSE, deletes files without confirmation.
 #'
@@ -385,20 +427,23 @@ return(create_results_dir(use_filename = use_filename))
 #'
 #' @examples
 #' \dontrun{
-#' # Clean with confirmation prompt (default)
+#' # Clean with confirmation prompt (default, parent directory naming)
 #' clean_results_dir()
 #' 
 #' # Clean without confirmation (use carefully!)
 #' clean_results_dir(confirm = FALSE)
 #' 
 #' # Clean results directory based on filename
-#' clean_results_dir(use_filename = TRUE, confirm = TRUE)
+#' clean_results_dir("filename", confirm = TRUE)
+#' 
+#' # Clean results directory using both parent and filename
+#' clean_results_dir("both", confirm = TRUE)
 #' }
 #'
 #' @seealso \code{\link{create_results_dir}}, \code{\link{get_results_dir}}
 #' @export
-clean_results_dir <- function(use_filename = FALSE, confirm = TRUE) {
-results_dir <- create_results_dir(use_filename = use_filename)
+clean_results_dir <- function(directory_naming = "parent", confirm = TRUE) {
+  results_dir <- create_results_dir(directory_naming = directory_naming)
   
   if (!dir.exists(results_dir)) {
     cat("Results directory doesn't exist.\n")
@@ -435,8 +480,9 @@ results_dir <- create_results_dir(use_filename = use_filename)
 #' for each copied file.
 #'
 #' @param source_files Character vector of source file paths to copy.
-#' @param use_filename Logical. If TRUE, uses the current filename as subdirectory.
-#'   If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.
+#' @param directory_naming Character string specifying the naming convention.
+#'   Options are "parent" (default), "filename", or "both". 
+#'   Passed to \code{\link{create_results_dir}}.
 #' @param descriptions Character vector or NULL. Optional descriptions for download links.
 #'   Should be same length as source_files. If NULL or shorter than source_files,
 #'   defaults to filename without extension with 📄 icon.
@@ -456,22 +502,22 @@ results_dir <- create_results_dir(use_filename = use_filename)
 #'
 #' @examples
 #' \dontrun{
-#' # Copy single file
+#' # Copy single file (parent directory naming)
 #' copy_to_results("data/raw_data.csv")
 #' 
-#' # Copy multiple files with descriptions
+#' # Copy multiple files with descriptions using filename naming
 #' files <- c("plots/figure1.png", "models/trained_model.rds")
 #' descriptions <- c("📊 Main Analysis Plot", "🤖 Trained ML Model")
-#' copy_to_results(files, descriptions = descriptions)
+#' copy_to_results(files, directory_naming = "filename", descriptions = descriptions)
 #' 
-#' # Copy to filename-based subdirectory
-#' copy_to_results("external_report.pdf", use_filename = TRUE)
+#' # Copy to combined parent-filename subdirectory
+#' copy_to_results("external_report.pdf", directory_naming = "both")
 #' }
 #'
 #' @seealso \code{\link{create_results_dir}}, \code{\link{save_and_link}}
 #' @export
-copy_to_results <- function(source_files, use_filename = FALSE, descriptions = NULL) {
-results_dir <- create_results_dir(use_filename = use_filename)
+copy_to_results <- function(source_files, directory_naming = "parent", descriptions = NULL) {
+  results_dir <- create_results_dir(directory_naming = directory_naming)
   project_root <- get_project_root()
   subdir_name <- basename(results_dir)
   
@@ -491,7 +537,8 @@ results_dir <- create_results_dir(use_filename = use_filename)
       
       cat(paste0("[", description, "](", relative_path, ")\n\n"))
     }
-  }}
+  }
+}
 
 #' List All Results Directories
 #'
@@ -520,7 +567,7 @@ results_dir <- create_results_dir(use_filename = use_filename)
 #' @seealso \code{\link{get_project_root}}, \code{\link{create_results_dir}}
 #' @export
 list_all_results <- function() {
- project_root <- get_project_root()
+  project_root <- get_project_root()
   results_root <- file.path(project_root, "results")
   
   if (!dir.exists(results_root)) {

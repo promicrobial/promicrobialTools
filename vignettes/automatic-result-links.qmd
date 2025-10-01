@@ -16,168 +16,83 @@ knitr:
 library(promicrobialTools)
 ```
 
-```{r}
-#| eval: false
-#| echo: false
-#| results: asis
-# Function to save data and create link
-save_and_link <- function(data, filename, description = NULL) {
-  # Get current file directory
-  current_file <- knitr::current_input()
-  if (!is.null(current_file)) {
-    file_dir <- dirname(current_file)
-  } else {
-    file_dir <- getwd()
-  }
+## Introduction
 
-  # Create results directory
-  results_dir <- file.path(file_dir, "results")
-  if (!dir.exists(results_dir)) {
-    dir.create(results_dir, recursive = TRUE)
-  }
+This vignette demonstrates an enhanced file organization system that provides three flexible options for organizing analysis results. The system automatically creates structured directories and generates download links for files created during analysis.
 
-  # Full file path
-  file_path <- file.path(results_dir, filename)
+## Directory Organization Options
 
-  # Save the data based on file extension
-  ext <- tools::file_ext(filename)
+The enhanced system offers three directory naming strategies:
 
-  if (ext == "csv") {
-    write.csv(data, file_path, row.names = FALSE)
-  } else if (ext == "xlsx") {
-    openxlsx::write.xlsx(data, file_path)
-  } else if (ext == "rds") {
-    saveRDS(data, file_path)
-  } else if (ext == "txt") {
-    writeLines(as.character(data), file_path)
-  }
+:::{.column-page}
+::: {.grid}
 
-  # Generate markdown link
-  relative_path <- file.path("results", filename)
-  link_text <- if (!is.null(description)) {
-    description
-  } else {
-    paste("Download", filename)
-  }
-
-  # Return markdown link
-  cat(paste0("[", link_text, "](", relative_path, ")\n\n"))
-
-  return(invisible(file_path))
-}
-
-generate_results_section <- function(results_dir = "results") {
-  current_file <- knitr::current_input()
-  if (!is.null(current_file)) {
-    base_dir <- dirname(current_file)
-  } else {
-    base_dir <- getwd()
-  }
-
-  full_results_dir <- file.path(base_dir, results_dir)
-
-  if (!dir.exists(full_results_dir)) {
-    return(invisible(NULL))
-  }
-
-  files <- list.files(full_results_dir, full.names = FALSE)
-
-  if (length(files) == 0) {
-    return(invisible(NULL))
-  }
-
-  cat("\n## 📊 Analysis Results\n\n")
-  cat("The following files contain detailed results from this analysis:\n\n")
-
-  # Group files by type
-  file_types <- list(
-    "Data Files" = c("csv", "xlsx", "rds", "json"),
-    "Plots" = c("png", "pdf", "svg", "jpg", "jpeg"),
-    "Reports" = c("html", "docx", "txt", "md"),
-    "Other" = character(0)
-  )
-
-  files_by_type <- list()
-
-  for (file in files) {
-    ext <- tools::file_ext(tolower(file))
-    assigned <- FALSE
-
-    for (type_name in names(file_types)) {
-      if (ext %in% file_types[[type_name]]) {
-        if (is.null(files_by_type[[type_name]])) {
-          files_by_type[[type_name]] <- character(0)
-        }
-        files_by_type[[type_name]] <- c(files_by_type[[type_name]], file)
-        assigned <- TRUE
-        break
-      }
-    }
-
-    if (!assigned) {
-      if (is.null(files_by_type[["Other"]])) {
-        files_by_type[["Other"]] <- character(0)
-      }
-      files_by_type[["Other"]] <- c(files_by_type[["Other"]], file)
-    }
-  }
-
-  # Generate links by type
-  for (type_name in names(files_by_type)) {
-    if (length(files_by_type[[type_name]]) > 0) {
-      cat(paste0("\n### ", type_name, "\n\n"))
-
-      for (file in files_by_type[[type_name]]) {
-        file_path <- file.path(results_dir, file)
-        full_file_path <- file.path(full_results_dir, file)
-
-        # Get file size
-        if (file.exists(full_file_path)) {
-          size_kb <- round(file.size(full_file_path) / 1024, 1)
-          size_info <- paste0(" (", size_kb, " KB)")
-        } else {
-          size_info <- ""
-        }
-
-        # Generate appropriate icon
-        ext <- tools::file_ext(tolower(file))
-        icon <- switch(
-          ext,
-          "csv" = "📊",
-          "xlsx" = "📋",
-          "rds" = "💾",
-          "png" = "🖼️",
-          "pdf" = "📄",
-          "svg" = "🎨",
-          "html" = "🌐",
-          "txt" = "📝",
-          "md" = "📄",
-          "📄"
-        )
-
-        cat(paste0(
-          "- ",
-          icon,
-          " [",
-          tools::file_path_sans_ext(file),
-          "](",
-          file_path,
-          ")",
-          size_info,
-          "\n"
-        ))
-      }
-    }
-  }
-
-  cat("\n")
-}
+::: {.g-col-4}
+### Option 1: Parent Directory (`"parent"`)
+**Default behavior** - Groups results by analysis section:
 
 ```
+project_root/
+├── _quarto.yml
+├── analysis/
+│   └── regression/
+│       └── linear-model.qmd   # Current file
+└── results/
+    └── regression/     # Based on parent folder
+        ├── model_results.csv
+        ├── diagnostics.png
+        └── summary.rds
+```
 
-## Analysis
+**Best for:** Organizing by analysis type or project section
+:::
 
-First lets create some simple results using the `mtcars` dataset from the [Tidyverse package](https://www.tidyverse.org/).
+::: {.g-col-4}
+### Option 2: Filename (`"filename"`)
+**File-specific organization** - Each document gets its own folder:
+
+```
+project_root/
+├── _quarto.yml
+├── analysis/
+│   └── regression/
+│       └── linear-model.qmd   # Current file
+└── results/
+    └── linear-model/     # Based on filename
+        ├── model_results.csv
+        ├── diagnostics.png
+        └── summary.rds
+```
+
+**Best for:** Independent analyses or avoiding file conflicts
+:::
+
+::: {.g-col-4}
+### Option 3: Combined (`"both"`)
+**Maximum specificity** - Combines both parent and filename:
+
+```
+project_root/
+├── _quarto.yml
+├── analysis/
+│   └── regression/
+│       └── linear-model.qmd   # Current file
+└── results/
+    └── regression_linear-model/  # Combined naming
+        ├── model_results.csv
+        ├── diagnostics.png
+        └── summary.rds
+```
+
+**Best for:** Complex projects with multiple similar analyses
+:::
+
+:::
+:::
+
+## Example Analysis
+
+Let's demonstrate all three approaches using the `mtcars` dataset from the [Tidyverse package](https://www.tidyverse.org/).
 
 ```{r analysis}
 #| results: asis
@@ -188,118 +103,263 @@ result_data <- mtcars %>%
   summarise(
     mean_mpg = mean(mpg),
     mean_hp = mean(hp),
-    count = n()
+    mean_wt = mean(wt),
+    count = n(),
+    .groups = 'drop'
   )
 
-# Show first few rows
-kable(head(result_data))
+# Show results
+kable(result_data, caption = "Summary statistics by cylinder count")
 ```
 
-Using the `save_and_link` function, we can automatically save the results to a folder called "results" in the project root directory, with either the name of the current file's parent directory or the name of the file itself. For example, 
+Using the `save_and_link` function, we can automatically save the results to a folder called "results" in the project root directory, with either the name of the current file's parent directory, the name of the file itself, or both. 
 
-:::{.column-page}
-::: {.grid}
+### Method 1: Parent Directory Organization
 
-::: {.g-col}
-
-If you chose to store results on a parent folder level, say for groupinig particular parts of your analysis, you would end up with something like this:
-
-```
-project_root/
-├── _quarto.yml
-├── analysis/
-│   └── data-quality-control/
-│       └── data-filtering.qmd
-│       └── metadata-cleaning.qmd
-│   └── regression/
-│       └── zero-inflated-model.qmd   # Current file
-└── results/
-    └── regression/     # Based on parent folder
-        ├── analysis_results.csv
-        ├── sample_data.xlsx
-        └── summary_stats.txt
-```
-
-:::
-
-::: {.g-col}
-
-If you store results on a file level (using `use_filename = TRUE`), then you would end up with a directory structure like this:
-
-```
-project_root/
-├── _quarto.yml
-├── analysis/
-│   └── data-quality-control/
-│       └── data-filtering.qmd
-│       └── metadata-cleaning.qmd
-│   └── regression/
-│       └── zero-inflated-model.qmd   # Current file
-└── results/
-    └── zero-inflated-model/     # Based on file name
-        ├── analysis_results.csv
-        ├── sample_data.xlsx
-        └── summary_stats.txt
-```
-:::
-
-:::
-:::
-
-For the sake of this vignette, results are going to be saved in a folder named after the parent folder (the default), which will be "vignettes". The `save_and_link` function can handle most data types.
+Using the default `"parent"` option groups results by the parent directory name:
 
 ```{r}
 #| results: asis
-# Save full results and create link
+
+# Save using parent directory naming (default)
 save_and_link(
   data = result_data,
-  filename = "cylinder_summary.csv",
-  description = "🔧 MT Cars Cylinder Analysis Summary",
-  use_filename = FALSE
+  filename = "cylinder_summary_parent.csv",
+  description = "🔧 Cylinder Summary (Parent Directory Method)",
+  directory_naming = "parent" # This is the default
 )
 
+# You can also omit the parameter for default behavior
 save_and_link(
-  data = mtcars,
-  filename = "raw_data.xlsx",
-  description = "📊 Raw Motor Trend Data",
-  use_filename = FALSE
+  data = mtcars[1:10, ],
+  filename = "sample_data_parent.xlsx",
+  description = "📊 Sample Data (Parent Directory Method)"
 )
 ```
 
-If you were to generate results files outside of the `save_and_link` function, it will still appear in the results section generated by `generate_results_section()`, so long as it is in the same folder. This may be useful for example when you save a plot but don't want to link it because it will be rendered during knit.
+### Method 2: Filename-Based Organization
 
-You can easily point towards the results folder used by `save_and_link` or `generate_results_section` using the function `get_results_dir`.
-
-```{r}
-#| eval: true
-
-filepath <- get_results_dir(use_filename = FALSE)
-
-```
-
-Then you can save plots or other results files without having to worry about making a mistake specifying the right directory for the current file.
-
-```{r}
-#| eval: true
-#| label: fig-mtcars
-#| fig-cap: MPG vs Horsepower
-(p <- ggplot(mtcars, aes(x = mpg, y = hp)) +
-  geom_point() +
-  theme_minimal())
-```
-
-```{r}
-#| eval: true
-#| results: false
-png(file.path(filepath, "mtcars-plot.png"), width = 1200, height = 800)
-plot(p)
-dev.off()
-```
-
-When all is said and done, you can summarise the results files generated during the document's render. These will include any saved to the document's folder that weren't saved with `save_and_link`.
+Using `"filename"` creates a directory named after the current document:
 
 ```{r}
 #| results: asis
-# Auto-generate results section at the end
-generate_results_section(use_filename = FALSE)
+
+save_and_link(
+  data = result_data,
+  filename = "cylinder_summary_filename.csv",
+  description = "🔧 Cylinder Summary (Filename Method)",
+  directory_naming = "filename"
+)
+
+save_and_link(
+  data = mtcars[11:20, ],
+  filename = "sample_data_filename.xlsx",
+  description = "📊 Sample Data (Filename Method)",
+  directory_naming = "filename"
+)
 ```
+
+### Method 3: Combined Naming
+
+Using `"both"` creates the most specific directory structure with a folder named after the current file's parent folder and a subdirectory using the file's name:
+
+```{r}
+#| results: asis
+
+save_and_link(
+  data = result_data,
+  filename = "cylinder_summary_combined.csv",
+  description = "🔧 Cylinder Summary (Combined Method)",
+  directory_naming = "both"
+)
+
+save_and_link(
+  data = mtcars[21:30, ],
+  filename = "sample_data_combined.xlsx",
+  description = "📊 Sample Data (Combined Method)",
+  directory_naming = "both"
+)
+```
+
+## Working with Different Directory Paths
+
+If you save files outside of the `save_and_link` function but want to use the same folder structure, you can easily point towards the results folder using the function `get_results_dir`.
+
+```{r}
+#| echo: true
+
+# Show the different paths that would be created
+cat("Parent directory method:", get_results_dir("parent"), "\n")
+cat("Filename method:", get_results_dir("filename"), "\n")
+cat("Combined method:", get_results_dir("both"), "\n")
+```
+
+Now you can save plots or other results files without having to worry about making a mistake specifying the right directory for the current file.
+
+```{r}
+#| label: fig-mpg-hp
+#| fig-cap: "MPG vs Horsepower by Cylinder Count"
+
+# Create plot
+mpg_plot <- ggplot(mtcars, aes(x = hp, y = mpg, color = factor(cyl))) +
+  geom_point(size = 3, alpha = 0.7) +
+  geom_smooth(method = "lm", se = FALSE) +
+  labs(
+    title = "Fuel Efficiency vs Engine Power",
+    x = "Horsepower",
+    y = "Miles per Gallon",
+    color = "Cylinders"
+  ) +
+  theme_minimal() +
+  theme(legend.position = "bottom")
+
+print(mpg_plot)
+```
+
+Now let's save this plot using each directory method:
+
+```{r}
+#| results: false
+
+# Save plots to different directories
+ggsave(
+  filename = file.path(get_results_dir("parent"), "mpg_vs_hp_parent.png"),
+  plot = mpg_plot,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
+ggsave(
+  filename = file.path(get_results_dir("filename"), "mpg_vs_hp_filename.png"),
+  plot = mpg_plot,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+
+ggsave(
+  filename = file.path(get_results_dir("both"), "mpg_vs_hp_combined.png"),
+  plot = mpg_plot,
+  width = 10,
+  height = 6,
+  dpi = 300
+)
+```
+
+## Multiple file types are supported
+
+The file type is automatically detected by the extension in the filename provided in the function, and saved with the appropraite function.
+
+Below is an example showing saving an R object as an `.rds` file
+
+```{r}
+#| results: asis
+
+# Fit different models
+linear_model <- lm(mpg ~ hp + wt + factor(cyl), data = mtcars)
+simple_model <- lm(mpg ~ hp, data = mtcars)
+
+# Save models using different directory structures
+save_and_link(
+  data = linear_model,
+  filename = "linear_model.rds",
+  description = "📈 Multi-variable Linear Model",
+  directory_naming = "parent"
+)
+```
+
+## Copying External Files
+
+You can also copy existing files to results directories:
+
+```{r}
+#| eval: false
+#| results: asis
+
+# Example of copying external files (not run in vignette)
+external_files <- c("data/external_dataset.csv", "docs/methodology.pdf")
+descriptions <- c("📊 External Dataset", "📄 Analysis Methodology")
+
+# Copy to parent directory structure
+copy_to_results(
+  source_files = external_files,
+  directory_naming = "parent",
+  descriptions = descriptions
+)
+
+# Copy to combined directory structure
+copy_to_results(
+  source_files = external_files,
+  directory_naming = "both",
+  descriptions = descriptions
+)
+```
+
+## Cleaning Up Results
+
+Each directory method has its own cleanup function:
+
+```{r}
+#| eval: false
+
+# Clean specific directory types (not run in vignette)
+clean_results_dir("parent", confirm = TRUE)
+clean_results_dir("filename", confirm = TRUE)
+clean_results_dir("both", confirm = TRUE)
+```
+
+## Summary: Generated Results by Method
+
+When all is said and done, you can summarise the results files generated during the document's render. These will include anything saved in the document's folder regardless of whether they were saved with `save_and_link`.
+
+### Parent Directory Results
+```{r}
+#| results: asis
+generate_results_section("parent")
+```
+
+### Filename-Based Results  
+```{r}
+#| results: asis
+generate_results_section("filename")
+```
+
+### Combined Directory Results
+```{r}
+#| results: asis
+generate_results_section("both")
+```
+
+## Overview of All Results
+
+Finally, let's see all results directories that were created:
+
+```{r}
+#| results: asis
+list_all_results()
+```
+
+## Best Practices and Recommendations
+
+### When to Use Each Method:
+
+**Parent Directory (`"parent"`)**:
+- ✅ Default choice for most analyses
+- ✅ When organizing by analysis type (e.g., "preprocessing", "modeling", "validation")
+- ✅ Team projects where results should be grouped by workflow stage
+- ✅ When multiple documents in the same folder should share results
+
+**Filename (`"filename"`)**:
+- ✅ Independent analyses that shouldn't be mixed
+- ✅ When each document represents a complete, standalone analysis
+- ✅ Avoiding filename conflicts in collaborative projects
+- ✅ When you want clear 1:1 mapping between documents and results
+
+**Combined (`"both"`)**:
+- ✅ Large, complex projects with many similar analyses
+- ✅ When you need maximum organization specificity
+- ✅ Longitudinal studies with repeated analyses
+- ✅ When both context (parent) and specificity (filename) are important
+
+This enhanced system provides the flexibility to organize results according to your project's specific needs while maintaining clean, predictable directory structures.
