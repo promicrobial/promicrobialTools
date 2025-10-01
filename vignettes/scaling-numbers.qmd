@@ -1,0 +1,54 @@
+---
+title: "Scaling and Backtransforming Numeric Data with scale_values"
+theme: slate
+knitr:
+  opts_chunk:
+    eval: true
+    collapse: true
+    results: hold
+    comment: ""
+author: "Nathaniel Cole"
+date: "`r Sys.Date()`"
+vignette: >
+  %\VignetteIndexEntry{Scaling and Backtransforming Numeric Data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup}
+# Load required libraries
+library(promicrobialTools)
+library(ggplot2)
+library(knitr)
+
+# Set seed for reproducibility
+set.seed(123)
+```
+
+# Introduction
+
+This vignette demonstrates how to use the scaling functions for normalizing numeric data to the [0,1] range and performing the inverse transformation. The package provides three main functions:
+
+- `scale_values()`: Scale data to [0,1] range
+- `get_scaled_value()`: Scale new values using existing scaling parameters  
+- `backtransform_scaled_values()`: Convert scaled values back to original scale
+
+These functions are particularly useful for data normalization.
+
+# Basic Usage
+
+## Scaling Simple Vectors
+
+Let's start with basic vector scaling:
+
+```{r basic-scaling}
+# Create sample data
+original_data <- c(10, 25, 30, 45, 50, 65, 80, 95, 100)
+
+# Scale to [0,1] range
+scaled_data <- scale_values(original_data)
+
+kable(data.frame(Original = original_data, Scaled = scaled_data), align = "c")
+# Check the range
+cat("Scaled range:", range(scaled_data), "\n")
+```
