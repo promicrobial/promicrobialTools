@@ -13,7 +13,8 @@ Imports: dplyr, ggplot2, tidyr, rlang, stats, methods, base, graphics, utils, ma
 Suggests:
     conflicted,
     quarto,
+    rmarkdown,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 Config/testthat/parallel: true
-VignetteBuilder: quarto
+VignetteBuilder: quarto, knitr

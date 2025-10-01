@@ -66,19 +66,6 @@ Effect size interpretations:
 \item |d| ≥ 0.8: large
 }
 }
-\section{Usage in Quarto/RMarkdown}{
-
-\dontrun{
-```{r}
-#| label: zi-effects
-#| tbl-cap: "Zero-Inflation Component Effect Sizes"
-
-summarise_zi_contrasts(emm_zi, contrasts_zi, model, 
-                      format = "kable")
-```
-}
-}
-
 \examples{
 \dontrun{
 # Fit zero-inflated model
@@ -97,5 +84,4 @@ results <- summarise_zi_contrasts(emm_zi, contrasts_zi, zi_model)
 results_table <- summarise_zi_contrasts(emm_zi, contrasts_zi, zi_model,
                                        format = "kable")
 }
-
 }

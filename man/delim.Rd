@@ -2,12 +2,40 @@
 % Please edit documentation in R/delim.R
 \name{delim}
 \alias{delim}
+\alias{csv}
+\alias{tsv}
 \title{Convert Data Frame, Matrix, or Vector to Delimited Text Format}
 \usage{
 delim(
   x,
   format = c("csv", "tsv", "custom"),
   sep = ",",
+  row.names = FALSE,
+  col.names = TRUE,
+  quote = TRUE,
+  na = "",
+  trim = TRUE,
+  scientific = FALSE,
+  digits = NULL
+)
+
+csv(
+  x,
+  format = "csv",
+  sep = ",",
+  row.names = FALSE,
+  col.names = TRUE,
+  quote = TRUE,
+  na = "",
+  trim = TRUE,
+  scientific = FALSE,
+  digits = NULL
+)
+
+tsv(
+  x,
+  format = "tsv",
+  sep = "\\t",
   row.names = FALSE,
   col.names = TRUE,
   quote = TRUE,
