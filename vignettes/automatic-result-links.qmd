@@ -1,0 +1,305 @@
+---
+title: "Automatically linking output files to a Quarto document during render"
+vignette: >
+  %\VignetteIndexEntry{Automatically linking output files to a Quarto document during render}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+theme: slate
+knitr:
+  opts_chunk:
+    collapse: true
+    results: hold
+---
+
+```{r}
+#| label: setup
+library(promicrobialTools)
+```
+
+```{r}
+#| eval: false
+#| echo: false
+#| results: asis
+# Function to save data and create link
+save_and_link <- function(data, filename, description = NULL) {
+  # Get current file directory
+  current_file <- knitr::current_input()
+  if (!is.null(current_file)) {
+    file_dir <- dirname(current_file)
+  } else {
+    file_dir <- getwd()
+  }
+
+  # Create results directory
+  results_dir <- file.path(file_dir, "results")
+  if (!dir.exists(results_dir)) {
+    dir.create(results_dir, recursive = TRUE)
+  }
+
+  # Full file path
+  file_path <- file.path(results_dir, filename)
+
+  # Save the data based on file extension
+  ext <- tools::file_ext(filename)
+
+  if (ext == "csv") {
+    write.csv(data, file_path, row.names = FALSE)
+  } else if (ext == "xlsx") {
+    openxlsx::write.xlsx(data, file_path)
+  } else if (ext == "rds") {
+    saveRDS(data, file_path)
+  } else if (ext == "txt") {
+    writeLines(as.character(data), file_path)
+  }
+
+  # Generate markdown link
+  relative_path <- file.path("results", filename)
+  link_text <- if (!is.null(description)) {
+    description
+  } else {
+    paste("Download", filename)
+  }
+
+  # Return markdown link
+  cat(paste0("[", link_text, "](", relative_path, ")\n\n"))
+
+  return(invisible(file_path))
+}
+
+generate_results_section <- function(results_dir = "results") {
+  current_file <- knitr::current_input()
+  if (!is.null(current_file)) {
+    base_dir <- dirname(current_file)
+  } else {
+    base_dir <- getwd()
+  }
+
+  full_results_dir <- file.path(base_dir, results_dir)
+
+  if (!dir.exists(full_results_dir)) {
+    return(invisible(NULL))
+  }
+
+  files <- list.files(full_results_dir, full.names = FALSE)
+
+  if (length(files) == 0) {
+    return(invisible(NULL))
+  }
+
+  cat("\n## 📊 Analysis Results\n\n")
+  cat("The following files contain detailed results from this analysis:\n\n")
+
+  # Group files by type
+  file_types <- list(
+    "Data Files" = c("csv", "xlsx", "rds", "json"),
+    "Plots" = c("png", "pdf", "svg", "jpg", "jpeg"),
+    "Reports" = c("html", "docx", "txt", "md"),
+    "Other" = character(0)
+  )
+
+  files_by_type <- list()
+
+  for (file in files) {
+    ext <- tools::file_ext(tolower(file))
+    assigned <- FALSE
+
+    for (type_name in names(file_types)) {
+      if (ext %in% file_types[[type_name]]) {
+        if (is.null(files_by_type[[type_name]])) {
+          files_by_type[[type_name]] <- character(0)
+        }
+        files_by_type[[type_name]] <- c(files_by_type[[type_name]], file)
+        assigned <- TRUE
+        break
+      }
+    }
+
+    if (!assigned) {
+      if (is.null(files_by_type[["Other"]])) {
+        files_by_type[["Other"]] <- character(0)
+      }
+      files_by_type[["Other"]] <- c(files_by_type[["Other"]], file)
+    }
+  }
+
+  # Generate links by type
+  for (type_name in names(files_by_type)) {
+    if (length(files_by_type[[type_name]]) > 0) {
+      cat(paste0("\n### ", type_name, "\n\n"))
+
+      for (file in files_by_type[[type_name]]) {
+        file_path <- file.path(results_dir, file)
+        full_file_path <- file.path(full_results_dir, file)
+
+        # Get file size
+        if (file.exists(full_file_path)) {
+          size_kb <- round(file.size(full_file_path) / 1024, 1)
+          size_info <- paste0(" (", size_kb, " KB)")
+        } else {
+          size_info <- ""
+        }
+
+        # Generate appropriate icon
+        ext <- tools::file_ext(tolower(file))
+        icon <- switch(
+          ext,
+          "csv" = "📊",
+          "xlsx" = "📋",
+          "rds" = "💾",
+          "png" = "🖼️",
+          "pdf" = "📄",
+          "svg" = "🎨",
+          "html" = "🌐",
+          "txt" = "📝",
+          "md" = "📄",
+          "📄"
+        )
+
+        cat(paste0(
+          "- ",
+          icon,
+          " [",
+          tools::file_path_sans_ext(file),
+          "](",
+          file_path,
+          ")",
+          size_info,
+          "\n"
+        ))
+      }
+    }
+  }
+
+  cat("\n")
+}
+
+```
+
+## Analysis
+
+First lets create some simple results using the `mtcars` dataset from the [Tidyverse package](https://www.tidyverse.org/).
+
+```{r analysis}
+#| results: asis
+
+# Perform analysis
+result_data <- mtcars %>%
+  group_by(cyl) %>%
+  summarise(
+    mean_mpg = mean(mpg),
+    mean_hp = mean(hp),
+    count = n()
+  )
+
+# Show first few rows
+kable(head(result_data))
+```
+
+Using the `save_and_link` function, we can automatically save the results to a folder called "results" in the project root directory, with either the name of the current file's parent directory or the name of the file itself. For example, 
+
+:::{.column-page}
+::: {.grid}
+
+::: {.g-col}
+
+If you chose to store results on a parent folder level, say for groupinig particular parts of your analysis, you would end up with something like this:
+
+```
+project_root/
+├── _quarto.yml
+├── analysis/
+│   └── data-quality-control/
+│       └── data-filtering.qmd
+│       └── metadata-cleaning.qmd
+│   └── regression/
+│       └── zero-inflated-model.qmd   # Current file
+└── results/
+    └── regression/     # Based on parent folder
+        ├── analysis_results.csv
+        ├── sample_data.xlsx
+        └── summary_stats.txt
+```
+
+:::
+
+::: {.g-col}
+
+If you store results on a file level (using `use_filename = TRUE`), then you would end up with a directory structure like this:
+
+```
+project_root/
+├── _quarto.yml
+├── analysis/
+│   └── data-quality-control/
+│       └── data-filtering.qmd
+│       └── metadata-cleaning.qmd
+│   └── regression/
+│       └── zero-inflated-model.qmd   # Current file
+└── results/
+    └── zero-inflated-model/     # Based on file name
+        ├── analysis_results.csv
+        ├── sample_data.xlsx
+        └── summary_stats.txt
+```
+:::
+
+:::
+:::
+
+For the sake of this vignette, results are going to be saved in a folder named after the parent folder (the default), which will be "vignettes". The `save_and_link` function can handle most data types.
+
+```{r}
+#| results: asis
+# Save full results and create link
+save_and_link(
+  data = result_data,
+  filename = "cylinder_summary.csv",
+  description = "🔧 MT Cars Cylinder Analysis Summary",
+  use_filename = FALSE
+)
+
+save_and_link(
+  data = mtcars,
+  filename = "raw_data.xlsx",
+  description = "📊 Raw Motor Trend Data",
+  use_filename = FALSE
+)
+```
+
+If you were to generate results files outside of the `save_and_link` function, it will still appear in the results section generated by `generate_results_section()`, so long as it is in the same folder. This may be useful for example when you save a plot but don't want to link it because it will be rendered during knit.
+
+You can easily point towards the results folder used by `save_and_link` or `generate_results_section` using the function `get_results_dir`.
+
+```{r}
+#| eval: true
+
+filepath <- get_results_dir(use_filename = FALSE)
+
+```
+
+Then you can save plots or other results files without having to worry about making a mistake specifying the right directory for the current file.
+
+```{r}
+#| eval: true
+#| label: fig-mtcars
+#| fig-cap: MPG vs Horsepower
+(p <- ggplot(mtcars, aes(x = mpg, y = hp)) +
+  geom_point() +
+  theme_minimal())
+```
+
+```{r}
+#| eval: true
+#| results: false
+png(file.path(filepath, "mtcars-plot.png"), width = 1200, height = 800)
+plot(p)
+dev.off()
+```
+
+When all is said and done, you can summarise the results files generated during the document's render. These will include any saved to the document's folder that weren't saved with `save_and_link`.
+
+```{r}
+#| results: asis
+# Auto-generate results section at the end
+generate_results_section(use_filename = FALSE)
+```
