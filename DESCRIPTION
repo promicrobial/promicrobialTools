@@ -1,6 +1,6 @@
 Package: promicrobialTools
 Title: A collection of handy functions for microbiome data analysis
-Version: 0.3.0
+Version: 0.3.0.9001
 Authors@R: 
     person("Nathaniel", "Cole", , "nc564@cornell.edu", role = c("aut", "cre", "cph"),
            comment = c(ORCID = "0000-0002-5132-3681"))
