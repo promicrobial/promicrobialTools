@@ -4,11 +4,12 @@
 \alias{generate_results_section}
 \title{Generate Results Section in Quarto Document}
 \usage{
-generate_results_section(use_filename = FALSE)
+generate_results_section(directory_naming = "parent")
 }
 \arguments{
-\item{use_filename}{Logical. If TRUE, uses the current filename as subdirectory.
-If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.}
+\item{directory_naming}{Character string specifying the naming convention.
+Options are "parent" (default), "filename", or "both" (nested parent/filename).
+Passed to \code{\link{create_results_dir}}.}
 }
 \value{
 NULL (invisibly). The function outputs formatted markdown using \code{cat()}.
@@ -44,7 +45,10 @@ Returns early (invisibly NULL) if no results directory exists or contains no fil
 generate_results_section()
 
 # Generate results section using current filename
-generate_results_section(use_filename = TRUE)
+generate_results_section("filename")
+
+# Generate results section using nested parent/filename structure
+generate_results_section("both")
 }
 
 }

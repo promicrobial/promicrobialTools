@@ -4,11 +4,12 @@
 \alias{get_results_dir}
 \title{Get Current Results Directory Path}
 \usage{
-get_results_dir(use_filename = FALSE)
+get_results_dir(directory_naming = "parent")
 }
 \arguments{
-\item{use_filename}{Logical. If TRUE, uses the current filename as subdirectory.
-If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.}
+\item{directory_naming}{Character string specifying the naming convention.
+Options are "parent" (default), "filename", or "both".
+Passed to \code{\link{create_results_dir}}.}
 }
 \value{
 Character string of the results directory path
@@ -23,12 +24,18 @@ useful for getting the directory path for other operations without side effects.
 }
 \examples{
 \dontrun{
-# Get current results directory path
+# Get current results directory path (parent directory naming)
 results_path <- get_results_dir()
 print(results_path)
 
+# Use filename-based naming
+results_path <- get_results_dir("filename")
+
+# Use both parent and filename
+results_path <- get_results_dir("both")
+
 # Use in other file operations
-results_path <- get_results_dir(use_filename = TRUE)
+results_path <- get_results_dir("both")
 file.copy("external_file.csv", file.path(results_path, "copied_file.csv"))
 }
 

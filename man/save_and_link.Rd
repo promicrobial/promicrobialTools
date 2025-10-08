@@ -4,7 +4,7 @@
 \alias{save_and_link}
 \title{Save Data and Create Download Link}
 \usage{
-save_and_link(data, filename, description = NULL, use_filename = FALSE)
+save_and_link(data, filename, description = NULL, directory_naming = "parent")
 }
 \arguments{
 \item{data}{The data object to save. Can be a data.frame, list, or other R object.}
@@ -14,8 +14,9 @@ save_and_link(data, filename, description = NULL, use_filename = FALSE)
 \item{description}{Character string or NULL. Optional description for the download link.
 If NULL, defaults to "Download {filename}".}
 
-\item{use_filename}{Logical. If TRUE, uses the current filename as subdirectory.
-If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.}
+\item{directory_naming}{Character string specifying the naming convention.
+Options are "parent" (default), "filename", or "both" (nested parent/filename).
+Passed to \code{\link{create_results_dir}}.}
 }
 \value{
 Invisibly returns the full file path where data was saved
@@ -39,16 +40,16 @@ The link path is relative to the project root for portability.
 }
 \examples{
 \dontrun{
-# Save a data frame as CSV with custom description
+# Save a data frame as CSV with custom description (parent directory naming)
 data <- mtcars[1:10, ]
 save_and_link(data, "car_data.csv", "🚗 Top 10 Cars Dataset")
 
 # Save as Excel file using filename as subdirectory
-save_and_link(iris, "iris.xlsx", "🌸 Iris Dataset", use_filename = TRUE)
+save_and_link(iris, "iris.xlsx", "🌸 Iris Dataset", directory_naming = "filename")
 
-# Save R object as RDS
+# Save R object as RDS using nested parent/filename structure
 model <- lm(mpg ~ wt, data = mtcars)
-save_and_link(model, "linear_model.rds", "📊 Linear Model Object")
+save_and_link(model, "linear_model.rds", "📊 Linear Model Object", directory_naming = "both")
 }
 
 }

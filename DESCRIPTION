@@ -9,7 +9,25 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Imports: dplyr, ggplot2, tidyr, rlang, stats, methods, base, graphics, utils, magrittr, gridExtra, knitr, data.table, emmeans, stringr, vegan
+Imports: 
+    dplyr,
+    ggplot2,
+    tidyr,
+    rlang,
+    stats,
+    methods,
+    base,
+    graphics,
+    utils,
+    magrittr,
+    gridExtra,
+    knitr,
+    data.table,
+    emmeans,
+    stringr,
+    vegan,
+    gt,
+    microbiome
 Suggests:
     conflicted,
     quarto,

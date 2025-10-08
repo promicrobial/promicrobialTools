@@ -4,13 +4,14 @@
 \alias{copy_to_results}
 \title{Copy Files to Results Directory}
 \usage{
-copy_to_results(source_files, use_filename = FALSE, descriptions = NULL)
+copy_to_results(source_files, directory_naming = "parent", descriptions = NULL)
 }
 \arguments{
 \item{source_files}{Character vector of source file paths to copy.}
 
-\item{use_filename}{Logical. If TRUE, uses the current filename as subdirectory.
-If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.}
+\item{directory_naming}{Character string specifying the naming convention.
+Options are "parent" (default), "filename", or "both".
+Passed to \code{\link{create_results_dir}}.}
 
 \item{descriptions}{Character vector or NULL. Optional descriptions for download links.
 Should be same length as source_files. If NULL or shorter than source_files,
@@ -36,16 +37,16 @@ as the destination filename (directory structure is flattened).
 }
 \examples{
 \dontrun{
-# Copy single file
+# Copy single file (parent directory naming)
 copy_to_results("data/raw_data.csv")
 
-# Copy multiple files with descriptions
+# Copy multiple files with descriptions using filename naming
 files <- c("plots/figure1.png", "models/trained_model.rds")
 descriptions <- c("📊 Main Analysis Plot", "🤖 Trained ML Model")
-copy_to_results(files, descriptions = descriptions)
+copy_to_results(files, directory_naming = "filename", descriptions = descriptions)
 
-# Copy to filename-based subdirectory
-copy_to_results("external_report.pdf", use_filename = TRUE)
+# Copy to combined parent-filename subdirectory
+copy_to_results("external_report.pdf", directory_naming = "both")
 }
 
 }

@@ -4,11 +4,12 @@
 \alias{clean_results_dir}
 \title{Clean Results Directory}
 \usage{
-clean_results_dir(use_filename = FALSE, confirm = TRUE)
+clean_results_dir(directory_naming = "parent", confirm = TRUE)
 }
 \arguments{
-\item{use_filename}{Logical. If TRUE, uses the current filename as subdirectory.
-If FALSE (default), uses the parent directory name. Passed to \code{\link{create_results_dir}}.}
+\item{directory_naming}{Character string specifying the naming convention.
+Options are "parent" (default), "filename", or "both".
+Passed to \code{\link{create_results_dir}}.}
 
 \item{confirm}{Logical. If TRUE (default), prompts user for confirmation before deleting files.
 If FALSE, deletes files without confirmation.}
@@ -33,14 +34,17 @@ Use with caution, especially when confirm = FALSE, as this permanently deletes f
 }
 \examples{
 \dontrun{
-# Clean with confirmation prompt (default)
+# Clean with confirmation prompt (default, parent directory naming)
 clean_results_dir()
 
 # Clean without confirmation (use carefully!)
 clean_results_dir(confirm = FALSE)
 
 # Clean results directory based on filename
-clean_results_dir(use_filename = TRUE, confirm = TRUE)
+clean_results_dir("filename", confirm = TRUE)
+
+# Clean results directory using both parent and filename
+clean_results_dir("both", confirm = TRUE)
 }
 
 }

@@ -4,36 +4,46 @@
 \alias{create_results_dir}
 \title{Create Results Directory Structure}
 \usage{
-create_results_dir(use_filename = FALSE)
+create_results_dir(directory_naming = "parent")
 }
 \arguments{
-\item{use_filename}{Logical. If TRUE, uses the current filename (without extension)
-as the subdirectory name. If FALSE (default), uses the parent directory name.}
+\item{directory_naming}{Character string specifying the naming convention.
+Options are:
+\itemize{
+\item "parent" (default): Uses parent directory name
+\item "filename": Uses current filename without extension
+\item "both": Uses nested structure parent/filename
+}}
 }
 \value{
 Character string of the created results directory path
 }
 \description{
 Creates a structured results directory in the project root based on either
-the parent directory name or the current filename.
+the parent directory name, the current filename, or both in a nested structure.
 }
 \details{
 The function creates a directory structure: \verb{project_root/results/subdirectory/}
-where subdirectory is determined by:
+where subdirectory is determined by the directory_naming parameter:
 \itemize{
-\item use_filename = FALSE: Parent directory name (e.g., "analysis" from "/path/analysis/file.qmd")
-\item use_filename = TRUE: Current filename without extension (e.g., "file" from "file.qmd")
+\item "parent": Parent directory name (e.g., "analysis" from "/path/analysis/file.qmd")
+\item "filename": Current filename without extension (e.g., "file" from "file.qmd")
+\item "both": Nested structure (e.g., "analysis/file" from "/path/analysis/file.qmd")
 }
 
 Uses regex pattern \code{"(?<=\\\\/)[^\\\\/]+(?=\\\\/[^\\\\/]+$)"} to extract parent directory name.
 }
 \examples{
 \dontrun{
-# Use parent directory name
+# Use parent directory name (default)
 results_dir <- create_results_dir()
+results_dir <- create_results_dir("parent")
 
 # Use current filename
-results_dir <- create_results_dir(use_filename = TRUE)
+results_dir <- create_results_dir("filename")
+
+# Use nested parent/filename structure
+results_dir <- create_results_dir("both")
 }
 
 }
