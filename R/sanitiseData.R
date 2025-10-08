@@ -52,9 +52,10 @@ sanitiseData <- function(df,
   
   # Clean column names
   names(df) <- names(df) %>%
+    str_trim("both") %>%                    # Remove leading and trailing whitespace
     str_remove("^X") %>%                    # Remove leading X
     str_remove("^\\.+") %>%                 # Remove leading dots
-    str_trim("both") %>%                    # Remove leading and trailing whitespace
+    str_remove("\\.+$") %>%                 # Remove trailing dots
     str_replace_all("\\.+", convert_spaces_to) %>%  # Replace dots with specified character
     str_replace_all("\\s+", convert_spaces_to) %>%  # Replace spaces with specified character
     str_replace_all("[^[:alnum:]_-]", "") %>%      # Remove other special characters
