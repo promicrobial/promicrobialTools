@@ -44,6 +44,7 @@
 #' @details
 #' The function extracts the following metrics from the phyloseq object:
 #' \itemize{
+#'   \item Dataset structure (number of samples, taxa, taxonomic ranks, phylogenetic tree, abundance type)
 #'   \item Read count statistics (min, max, total, average, median)
 #'   \item Data quality metrics (sparsity, singletons)
 #'   \item Sample variables information (optional)
@@ -59,6 +60,7 @@
 #' @seealso \code{\link[microbiome]{summarize_phyloseq}}, \code{\link[gt]{gt}}, \code{\link[knitr]{kable}}
 #'
 #' @importFrom microbiome summarize_phyloseq
+#' @importFrom phyloseq nsamples ntaxa rank_names phy_tree otu_table
 #' @importFrom gt gt tab_header tab_row_group cols_label cols_align tab_options tab_style cell_text cells_column_labels tab_source_note
 #' @importFrom knitr kable
 #' @importFrom dplyr %>%
@@ -74,6 +76,10 @@ phyloseq_summary <- function(phyloseq_obj,
   # Input validation
   if (!requireNamespace("microbiome", quietly = TRUE)) {
     stop("Package 'microbiome' is required but not installed. Please install it with: install.packages('microbiome')")
+  }
+  
+  if (!requireNamespace("phyloseq", quietly = TRUE)) {
+    stop("Package 'phyloseq' is required but not installed. Please install it with: install.packages('phyloseq')")
   }
   
   if (!inherits(phyloseq_obj, "phyloseq")) {
@@ -108,9 +114,68 @@ phyloseq_summary <- function(phyloseq_obj,
     stop("Package 'knitr' is required for kable format but not installed.")
   }
   
+  # Get phyloseq object structure information with conditional checks
+  
+  # Number of samples (conditional)
+  n_samples <- tryCatch({
+    phyloseq::nsamples(phyloseq_obj)
+  }, error = function(e) {
+    NA
+  })
+  
+  # Number of taxa (conditional)
+  n_taxa <- tryCatch({
+    phyloseq::ntaxa(phyloseq_obj)
+  }, error = function(e) {
+    NA
+  })
+  
+  # Get taxonomic ranks information
+  tryCatch({
+    tax_ranks <- phyloseq::rank_names(phyloseq_obj)
+    n_tax_ranks <- length(tax_ranks)
+    tax_ranks_display <- if (length(tax_ranks) > 0) {
+      paste(tax_ranks, collapse = ", ")
+    } else {
+      "None"
+    }
+  }, error = function(e) {
+    warning("Could not extract taxonomic rank information: ", e$message)
+    tax_ranks <- character(0)
+    n_tax_ranks <- 0
+    tax_ranks_display <- "Not available"
+  })
+  
+  # Check for phylogenetic tree
+  has_tree <- tryCatch({
+    tree <- phyloseq::phy_tree(phyloseq_obj, errorIfNULL = FALSE)
+    !is.null(tree)
+  }, error = function(e) {
+    FALSE
+  })
+  
+  # Determine if abundances are relative or absolute
+  abundance_type <- tryCatch({
+    # Get the OTU table
+    otu_tab <- phyloseq::otu_table(phyloseq_obj)
+    
+    # Check if any sample sums are close to 1 (indicating relative abundances)
+    # We'll check if the maximum sample sum is <= 1.01 to account for small rounding errors
+    sample_sums <- colSums(otu_tab)
+    max_sum <- max(sample_sums, na.rm = TRUE)
+    
+    if (max_sum <= 1.01 && max_sum > 0.5) {
+      "Relative"
+    } else {
+      "Absolute"
+    }
+  }, error = function(e) {
+    "Unknown"
+  })
+  
   # Get the summary from microbiome package
   tryCatch({
-    suppressMessages(summary_list <- microbiome::summarize_phyloseq(phyloseq_obj))
+    summary_list <- microbiome::summarize_phyloseq(phyloseq_obj)
   }, error = function(e) {
     stop("Error generating phyloseq summary: ", e$message)
   })
@@ -142,9 +207,15 @@ phyloseq_summary <- function(phyloseq_obj,
   singletons <- safe_extract_numeric(summary_list[[8]], "^\\d+\\]\\s*Number of singletons = ")
   singleton_pct <- safe_extract_numeric(summary_list[[9]], ".*\\)")
   
-  # Create the data frame
+  # Create the data frame with dataset structure first
   df <- data.frame(
-    Metric = c("Minimum reads/sample", 
+    Metric = c("Number of samples",
+               "Number of taxa", 
+               "Number of taxonomic ranks",
+               "Taxonomic ranks",
+               "Phylogenetic tree",
+               "Abundance type",
+               "Minimum reads/sample", 
                "Maximum reads/sample", 
                "Total reads", 
                "Average reads/sample", 
@@ -154,6 +225,12 @@ phyloseq_summary <- function(phyloseq_obj,
                "Singleton OTUs", 
                "Singleton percentage"),
     Value = c(
+      ifelse(is.na(n_samples), "NA", format(n_samples, big.mark = ",")),
+      ifelse(is.na(n_taxa), "NA", format(n_taxa, big.mark = ",")),
+      format(n_tax_ranks, big.mark = ","),
+      tax_ranks_display,
+      ifelse(has_tree, "Present", "Absent"),
+      abundance_type,
       format(min_reads, big.mark = ","),
       format(max_reads, big.mark = ","),
       format(total_reads, big.mark = ","),
@@ -168,47 +245,45 @@ phyloseq_summary <- function(phyloseq_obj,
   )
   
   # Return based on format
-if (format == "df") {
-  if (add_sample_vars && length(summary_list) >= 11) {
-    # Store the full list and truncated display version
-    attr(df, "sample_variables") <- summary_list[[11]]
-    n_vars <- safe_extract_numeric(summary_list[[10]], "^\\d+\\]\\s*Number of sample variables are: ")
-    attr(df, "n_sample_variables") <- n_vars
-    
-    # Create display version
-    if (length(summary_list[[11]]) > 10) {
-      displayed_vars <- summary_list[[11]][1:10]
-      attr(df, "sample_variables_display") <- paste(c(displayed_vars, "..."), collapse = ", ")
-    } else {
-      attr(df, "sample_variables_display") <- paste(summary_list[[11]], collapse = ", ")
+  if (format == "df") {
+    if (add_sample_vars && length(summary_list) >= 11) {
+      attr(df, "sample_variables") <- summary_list[[11]]
+      n_vars <- safe_extract_numeric(summary_list[[10]], "^\\d+\\]\\s*Number of sample variables are: ")
+      attr(df, "n_sample_variables") <- n_vars
+      
+      # Create display version
+      if (length(summary_list[[11]]) > 10) {
+        displayed_vars <- summary_list[[11]][1:10]
+        attr(df, "sample_variables_display") <- paste(c(displayed_vars, "..."), collapse = ", ")
+      } else {
+        attr(df, "sample_variables_display") <- paste(summary_list[[11]], collapse = ", ")
+      }
     }
-  }
-  return(df)
-}
-
-  
-if (format == "kable") {
-  table_out <- knitr::kable(df, 
-                           caption = paste0(title, ": ", subtitle),
-                           format = "html",
-                           table.attr = "class='table table-striped'")
-  
-  if (add_sample_vars && length(summary_list) >= 11) {
-    n_vars <- safe_extract_numeric(summary_list[[10]], "^\\d+\\]\\s*Number of sample variables are: ")
-    
-    # Limit display to first 10 variables if there are more than 10
-    if (length(summary_list[[11]]) > 10) {
-      displayed_vars <- summary_list[[11]][1:10]
-      sample_vars <- paste(c(displayed_vars, "..."), collapse = ", ")
-    } else {
-      sample_vars <- paste(summary_list[[11]], collapse = ", ")
-    }
-    
-    attr(table_out, "sample_vars_note") <- paste0("Sample variables (", n_vars, "): ", sample_vars)
+    return(df)
   }
   
-  return(table_out)
-}
+  if (format == "kable") {
+    table_out <- knitr::kable(df, 
+                             caption = paste0(title, ": ", subtitle),
+                             format = "html",
+                             table.attr = "class='table table-striped'")
+    
+    if (add_sample_vars && length(summary_list) >= 11) {
+      n_vars <- safe_extract_numeric(summary_list[[10]], "^\\d+\\]\\s*Number of sample variables are: ")
+      
+      # Limit display to first 10 variables if there are more than 10
+      if (length(summary_list[[11]]) > 10) {
+        displayed_vars <- summary_list[[11]][1:10]
+        sample_vars <- paste(c(displayed_vars, "..."), collapse = ", ")
+      } else {
+        sample_vars <- paste(summary_list[[11]], collapse = ", ")
+      }
+      
+      attr(table_out, "sample_vars_note") <- paste0("Sample variables (", n_vars, "): ", sample_vars)
+    }
+    
+    return(table_out)
+  }
   
   # GT format (default)
   if (!requireNamespace("dplyr", quietly = TRUE)) {
@@ -221,14 +296,18 @@ if (format == "kable") {
       title = title,
       subtitle = subtitle
     ) %>%
-    gt::tab_row_group(
-      label = "📊 Read Statistics",
-      rows = 1:5
+      gt::tab_row_group(
+        label = "🔍 Data Quality Metrics", 
+        rows = 12:15
+      ) %>%
+        gt::tab_row_group(
+      label = "📈 Read Statistics",
+      rows = 7:11
     ) %>%
-    gt::tab_row_group(
-      label = "🔍 Data Quality Metrics", 
-      rows = 6:9
-    ) %>%
+      gt::tab_row_group(
+        label = "📊 Dataset Structure",
+        rows = 1:6
+      ) %>%
     gt::cols_label(
       Metric = "Metric",
       Value = "Value"
@@ -253,7 +332,7 @@ if (format == "kable") {
       locations = gt::cells_column_labels()
     )
   
-# Add sample variables information
+  # Add sample variables information
   if (add_sample_vars && length(summary_list) >= 11) {
     n_vars <- safe_extract_numeric(summary_list[[10]], "^\\d+\\]\\s*Number of sample variables are: ")
     
