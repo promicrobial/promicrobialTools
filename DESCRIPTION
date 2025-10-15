@@ -10,27 +10,27 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Imports: 
+    base,
+    data.table,
     dplyr,
+    emmeans,
     ggplot2,
-    tidyr,
+    graphics,
+    gridExtra,
+    gt,
+    jsonlite,
+    knitr,
+    magrittr,
+    methods,
+    microbiome,
+    openxlsx
+    phyloseq,
     rlang,
     stats,
-    methods,
-    base,
-    graphics,
-    utils,
-    magrittr,
-    gridExtra,
-    knitr,
-    data.table,
-    emmeans,
     stringr,
-    vegan,
-    gt,
-    microbiome,
-    phyloseq,
-    jsonlite,
-    openxlsx
+    tidyr,
+    utils,
+    vegan
 Suggests:
     conflicted,
     mockery,
