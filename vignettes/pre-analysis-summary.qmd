@@ -1,0 +1,59 @@
+---
+title: "Summarising Data before Analysis"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Summarising Data before Analysis}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+theme: slate
+knitr:
+  opts_chunk:
+    collapse: true
+    results: hold
+    comment: ""
+    cache: true
+---
+
+```{r setup}
+#| message: false
+library(promicrobialTools)
+library(microbiome)
+data(dietswap)
+```
+
+```{r}
+#| eval: true
+#| label: gt
+#| fig-cap: NA
+#| tbl-cap: NA
+# Display the table
+phyloseq_summary(dietswap)
+
+```
+
+```{r}
+#| eval: true
+#| label: kable
+#| fig-cap: NA
+#| tbl-cap: NA
+phyloseq_summary(dietswap, format = "kable")
+
+```
+
+```{r}
+#| eval: true
+#| label: df
+#| fig-cap: NA
+#| tbl-cap: NA
+phyloseq_summary(dietswap, format = "df")
+
+```
+
+## Appendix
+
+```{r}
+#| eval: true
+#| label: info
+
+print(sessionInfo(), locale = FALSE)
+```

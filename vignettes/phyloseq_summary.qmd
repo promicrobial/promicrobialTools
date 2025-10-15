@@ -1,0 +1,159 @@
+---
+title: "Creating Phyloseq Summary Tables"
+vignette: >
+  %\VignetteIndexEntry{Creating Phyloseq Summary Tables}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+author: "Nathaniel Cole"
+date: "`r Sys.Date()`"
+theme: slate
+knitr:
+  opts_chunk:
+    collapse: true
+    results: hold
+    comment: ""
+---
+
+## Introduction
+
+The `phyloseq_summary()` function provides a comprehensive summary of phyloseq objects that is essential for reproducible microbiome data analysis. This function generates professional-looking summary tables that are compatible with both HTML and PDF rendering in Quarto documents.
+
+```{r}
+#| label: setup
+library(promicrobialTools)
+library(phyloseq)
+```
+
+## Loading Example Data
+
+We'll use the built-in GlobalPatterns dataset from phyloseq for demonstration:
+
+```{r}
+# Load example data
+data("GlobalPatterns")
+gp <- GlobalPatterns
+
+# Let's also create a subset for faster processing
+gp_subset <- subset_samples(
+  GlobalPatterns,
+  SampleType %in% c("Feces", "Skin", "Tongue")
+)
+gp_subset <- prune_taxa(taxa_sums(gp_subset) > 100, gp_subset)
+```
+
+## Default GT Format (Best for HTML)
+
+The default format creates a styled gt table that renders beautifully in HTML documents:
+
+```{r}
+# Create summary table with default settings
+phyloseq_summary(gp_subset)
+```
+
+## Kable Format (Best for PDF)
+
+For PDF rendering, use the kable format which provides better compatibility:
+
+```{r}
+# Create summary table for PDF rendering
+summary_kable <- phyloseq_summary(
+  gp_subset,
+  format = "kable",
+  title = "GlobalPatterns Dataset Summary"
+)
+
+summary_kable
+```
+
+## Data Frame Format (For Further Processing)
+
+Get the raw data frame for custom processing:
+
+```{r}
+# Get summary as data frame
+summary_df <- phyloseq_summary(gp_subset, format = "df")
+print(summary_df)
+```
+
+# Understanding the Output
+
+The function provides three main sections of information:
+
+## 1. Dataset Structure (📊)
+
+This section provides essential metadata about the phyloseq object:
+
+- **Number of samples**: Total sample count (NA if not available)
+- **Number of taxa**: Total taxa/OTU count (NA if not available)  
+- **Number of taxonomic ranks**: Count of taxonomic levels
+- **Taxonomic ranks**: List of available taxonomic ranks (e.g., Kingdom, Phylum, etc.)
+- **Phylogenetic tree**: Whether a phylogenetic tree is present (Present/Absent)
+- **Abundance type**: Whether abundances are Relative, Absolute, or Unknown
+
+## 2. Read Statistics (📈)
+
+Standard sequencing depth and distribution metrics:
+
+- Read count ranges (min/max per sample)
+- Total, average, and median read counts
+- Essential for understanding sequencing effort and depth
+
+## 3. Data Quality Metrics (🔍)
+
+Quality assessment metrics critical for downstream analysis:
+
+- **Data sparsity**: Percentage of zero values in the OTU table
+- **Singletons**: OTUs with only one read across all samples
+- Important for filtering decisions and analysis interpretation
+
+# Advanced Usage
+
+## Custom Titles and Formatting
+
+```{r eval=FALSE}
+# Custom title and subtitle
+phyloseq_summary(
+  gp_subset,
+  title = "Human Microbiome Analysis",
+  subtitle = "16S rRNA gene sequencing results from multiple body sites",
+  decimal_places = 2
+)
+```
+
+## Best Practices
+
+### **Quality Assessment**
+- Pay attention to sparsity levels (>80% may indicate over-filtering)
+- Check singleton percentages (high values may suggest contamination)
+- Verify abundance types match your expectations
+
+### **Reproducibility**
+- Include phyloseq object summaries at multiple analysis stages
+- Document any filtering or transformation steps
+- Use consistent decimal places for comparability
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Package not installed" errors**: Ensure all dependencies are installed
+2. **GT tables not rendering in PDF**: Use `format = "kable"` instead
+3. **"NA" values in output**: Normal for incomplete phyloseq objects
+4. **Abundance type "Unknown"**: May occur with unusual data distributions
+
+### Getting Help
+
+```{r eval=FALSE}
+# View function documentation
+?phyloseq_summary
+
+# Check phyloseq object structure
+str(your_phyloseq_object)
+
+# Validate phyloseq object
+phyloseq::validate_phyloseq(your_phyloseq_object)
+```
+
+---
+
+This vignette demonstrates the functionality of `phyloseq_summary()` for extracting important dataset metadata from phyloseq objects in microbiome analysis workflows.
