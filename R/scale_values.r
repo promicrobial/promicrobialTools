@@ -42,7 +42,7 @@
 #' scale_values(mat)
 #'
 #' @seealso
-#' \code{\link{scale}}, \code{\link{normalize}}
+#' \code{\link{[base]{scale}}, \code{\link{[base]{sweep}}
 #'
 #' @export
 scale_values <- function(x, 

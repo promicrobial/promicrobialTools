@@ -221,7 +221,7 @@ phyloseq_summary <- function(phyloseq_obj,
                "Average reads/sample", 
                "Median reads/sample", 
                "Data sparsity", 
-               "OTUs with ≤1 read", 
+               "OTUs with \u2264 1 read", 
                "Singleton OTUs", 
                "Singleton percentage"),
     Value = c(
@@ -297,15 +297,15 @@ phyloseq_summary <- function(phyloseq_obj,
       subtitle = subtitle
     ) %>%
       gt::tab_row_group(
-        label = "🔍 Data Quality Metrics", 
+        label = "\U0001f50d Data Quality Metrics", 
         rows = 12:15
       ) %>%
         gt::tab_row_group(
-      label = "📈 Read Statistics",
+      label = "\U0001f4c8 Read Statistics",
       rows = 7:11
     ) %>%
       gt::tab_row_group(
-        label = "📊 Dataset Structure",
+        label = "\U0001f4ca Dataset Structure",
         rows = 1:6
       ) %>%
     gt::cols_label(

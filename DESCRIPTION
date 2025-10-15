@@ -28,7 +28,9 @@ Imports:
     vegan,
     gt,
     microbiome,
-    phyloseq
+    phyloseq,
+    jsonlite,
+    openxlsx
 Suggests:
     conflicted,
     mockery,

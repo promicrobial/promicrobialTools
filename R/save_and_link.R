@@ -172,14 +172,14 @@ create_results_dir <- function(directory_naming = "parent") {
 #' \dontrun{
 #' # Save a data frame as CSV with custom description (parent directory naming)
 #' data <- mtcars[1:10, ]
-#' save_and_link(data, "car_data.csv", "🚗 Top 10 Cars Dataset")
+#' save_and_link(data, "car_data.csv", "Top 10 Cars Dataset")
 #' 
 #' # Save as Excel file using filename as subdirectory
-#' save_and_link(iris, "iris.xlsx", "🌸 Iris Dataset", directory_naming = "filename")
+#' save_and_link(iris, "iris.xlsx", "Iris Dataset", directory_naming = "filename")
 #' 
 #' # Save R object as RDS using nested parent/filename structure
 #' model <- lm(mpg ~ wt, data = mtcars)
-#' save_and_link(model, "linear_model.rds", "📊 Linear Model Object", directory_naming = "both")
+#' save_and_link(model, "linear_model.rds", "Linear Model Object", directory_naming = "both")
 #' }
 #'
 #' @seealso \code{\link{create_results_dir}}, \code{\link{generate_results_section}}
@@ -289,7 +289,7 @@ generate_results_section <- function(directory_naming = "parent") {
   # Get the subdirectory path for the header (relative to results/)
   subdir_path <- stringr::str_remove(results_dir, paste0(".*", file.path("", "results", "")))
   
-  cat(paste0("\n## 📊 Analysis Results (", subdir_path, ")\n\n"))
+  cat(paste0("\n## \U0001f4ca Analysis Results (", subdir_path, ")\n\n"))
   cat("The following files contain detailed results from this analysis:\n\n")
   
   # Group files by type
@@ -349,11 +349,24 @@ generate_results_section <- function(directory_naming = "parent") {
         # Generate appropriate icon
         ext <- tools::file_ext(tolower(file))
         icon <- switch(ext,
-          "csv" = "📊", "xlsx" = "📋", "rds" = "💾", "json" = "🔧", "parquet" = "📦",
-          "png" = "🖼️", "pdf" = "📄", "svg" = "🎨", "jpg" = "🖼️", "jpeg" = "🖼️",
-          "html" = "🌐", "txt" = "📝", "md" = "📄", "docx" = "📄",
-          "h5" = "🧠", "pkl" = "🤖", "joblib" = "⚙️",
-          "📄"
+          "csv" = "\U0001f4ca", 
+          "xlsx" = "\U0001F4CB", 
+          "rds" = "\U0001F4BE", 
+          "json" = "\U0002699", 
+          "parquet" = "\U0001F4E6",
+          "png" = "\U0001f5bc", 
+          "pdf" = "\U0001F4C4", 
+          "svg" = "\U0001f3a8", 
+          "jpg" = "\U0001f5bc", 
+          "jpeg" = "\U0001f5bc", 
+          "html" = "\U0001F310", 
+          "txt" = "\U0001F4DD", 
+          "md" = "\U0001F4C4", 
+          "docx" = "\U0001F4C4", 
+          "h5" = "\U0001F9E0", 
+          "pkl" = "\U0001F916", 
+          "joblib" = "\U0002699",
+          "\U0001F4C4"
         )
         
         # Clean filename for display (remove extension)
@@ -490,7 +503,7 @@ clean_results_dir <- function(directory_naming = "parent", confirm = TRUE) {
 #'   Passed to \code{\link{create_results_dir}}.
 #' @param descriptions Character vector or NULL. Optional descriptions for download links.
 #'   Should be same length as source_files. If NULL or shorter than source_files,
-#'   defaults to filename without extension with 📄 icon.
+#'   defaults to filename without extension with \U0001F4C4 icon.
 #'
 #' @return NULL (invisibly). Outputs markdown links using \code{cat()}.
 #'
@@ -512,7 +525,7 @@ clean_results_dir <- function(directory_naming = "parent", confirm = TRUE) {
 #' 
 #' # Copy multiple files with descriptions using filename naming
 #' files <- c("plots/figure1.png", "models/trained_model.rds")
-#' descriptions <- c("📊 Main Analysis Plot", "🤖 Trained ML Model")
+#' descriptions <- c("\U0001f4ca Main Analysis Plot", "\U0001F916 Trained ML Model")
 #' copy_to_results(files, directory_naming = "filename", descriptions = descriptions)
 #' 
 #' # Copy to combined parent-filename subdirectory
@@ -537,7 +550,7 @@ copy_to_results <- function(source_files, directory_naming = "parent", descripti
       description <- if (!is.null(descriptions) && length(descriptions) >= i) {
         descriptions[i]
       } else {
-        paste("📄", tools::file_path_sans_ext(basename(source_file)))
+        paste("\U0001F4C4", tools::file_path_sans_ext(basename(source_file)))
       }
       
       cat(paste0("[", description, "](", relative_path, ")\n\n"))

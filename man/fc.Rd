@@ -35,7 +35,7 @@ The function handles two types of calculations:
 \enumerate{
 \item Raw counts: When \code{b} is provided, calculates \code{a/b} or \code{-b/a}
 \item Log-transformed: When \code{log_base} is provided, calculates
-\code{±log_base^|a|}
+\code{\u00B1log_base^|a|}
 }
 
 If both \code{b} and \code{log_base} are provided, uses raw counts and issues

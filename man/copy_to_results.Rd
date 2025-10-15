@@ -15,7 +15,7 @@ Passed to \code{\link{create_results_dir}}.}
 
 \item{descriptions}{Character vector or NULL. Optional descriptions for download links.
 Should be same length as source_files. If NULL or shorter than source_files,
-defaults to filename without extension with 📄 icon.}
+defaults to filename without extension with \U0001F4C4 icon.}
 }
 \value{
 NULL (invisibly). Outputs markdown links using \code{cat()}.
@@ -42,7 +42,7 @@ copy_to_results("data/raw_data.csv")
 
 # Copy multiple files with descriptions using filename naming
 files <- c("plots/figure1.png", "models/trained_model.rds")
-descriptions <- c("📊 Main Analysis Plot", "🤖 Trained ML Model")
+descriptions <- c("\U0001f4ca Main Analysis Plot", "\U0001F916 Trained ML Model")
 copy_to_results(files, directory_naming = "filename", descriptions = descriptions)
 
 # Copy to combined parent-filename subdirectory

@@ -58,8 +58,8 @@ make_progress_counter <- function(total,
   
   # Create progress bar characters
   bar_chars <- list(
-    done = "█",
-    remaining = "░",
+    done = "\U0002590",
+    remaining = "\U0002591",
     left = "[",
     right = "]"
   )

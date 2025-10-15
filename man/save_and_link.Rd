@@ -42,14 +42,14 @@ The link path is relative to the project root for portability.
 \dontrun{
 # Save a data frame as CSV with custom description (parent directory naming)
 data <- mtcars[1:10, ]
-save_and_link(data, "car_data.csv", "🚗 Top 10 Cars Dataset")
+save_and_link(data, "car_data.csv", "Top 10 Cars Dataset")
 
 # Save as Excel file using filename as subdirectory
-save_and_link(iris, "iris.xlsx", "🌸 Iris Dataset", directory_naming = "filename")
+save_and_link(iris, "iris.xlsx", "Iris Dataset", directory_naming = "filename")
 
 # Save R object as RDS using nested parent/filename structure
 model <- lm(mpg ~ wt, data = mtcars)
-save_and_link(model, "linear_model.rds", "📊 Linear Model Object", directory_naming = "both")
+save_and_link(model, "linear_model.rds", "Linear Model Object", directory_naming = "both")
 }
 
 }

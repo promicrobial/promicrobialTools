@@ -23,9 +23,9 @@ where odds ratios are the primary effect size measure.
 Effect size interpretations:
 \itemize{
 \item |d| < 0.2: negligible
-\item 0.2 ≤ |d| < 0.5: small
-\item 0.5 ≤ |d| < 0.8: medium
-\item |d| ≥ 0.8: large
+\item 0.2 \u2264 |d| < 0.5: small
+\item 0.5 \u2264 |d| < 0.8: medium
+\item |d| \u2265 0.8: large
 }
 
 The conversion uses the following steps:

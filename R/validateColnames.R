@@ -198,14 +198,14 @@ print.colname_validation <- function(x, ...) {
   for (i in seq_along(check_labels)) {
     label <- names(check_labels)[i]
     check <- check_labels[i]
-    status <- ifelse(x[[check]], "✓ PASS", "✗ FAIL")
+    status <- ifelse(x[[check]], "\U0002714 PASS", "\U0002716 FAIL")
     cat(sprintf("  %-25s %s\n", paste0(label, ":"), status))
   }
   
   if (x$summary == "FAIL") {
     cat("\nIssues Found:\n")
     for (issue in x$issues) {
-      cat("  •", issue, "\n")
+      cat("  \U0002022", issue, "\n")
     }
   }
 }
@@ -230,8 +230,8 @@ generate_validation_report <- function(validation_results, title = "Column Name 
   
   # Overall status
   status_badge <- ifelse(validation_results$summary == "PASS", 
-                        "🟢 **PASS**", 
-                        "🔴 **FAIL**")
+                        "\U0001F7E2 **PASS**", 
+                        "\U0001F534 **FAIL**")
   report <- c(report, paste0("**Overall Status:** ", status_badge))
   report <- c(report, "")
   
@@ -252,7 +252,7 @@ generate_validation_report <- function(validation_results, title = "Column Name 
   )
   
   for (check_name in names(checks_data)) {
-    status_icon <- ifelse(checks_data[[check_name]], "✅ PASS", "❌ FAIL")
+    status_icon <- ifelse(checks_data[[check_name]], "\U0001F7E2 PASS", "\U0001F534 FAIL")
     report <- c(report, paste0("| ", check_name, " | ", status_icon, " |"))
   }
   

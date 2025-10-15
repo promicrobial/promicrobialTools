@@ -9,6 +9,7 @@
 #' @param format Character. Output format: "markdown", "html", or "latex" (default: "markdown")
 #' @param caption Character. Optional table caption
 #' @param col.names Character vector. Custom column names
+#' @param kable Logical. Whether to format output table with knitr::kable (default: TRUE)
 #'
 #' @return A knitr_kable object that can be directly used in R Markdown or Quarto
 #'
@@ -206,6 +207,7 @@ knit_print.model_matrix <- function(x, ...) {
 #' @param model A fitted model object (e.g., from glmmTMB, lme4, etc.)
 #' @param specs Formula or character string specifying the emmeans structure
 #' @param at_values Named list of values at which to evaluate emmeans (default: NULL)
+#' @param by A character vector of predictor names to condition on
 #' @param adjust_method Character string specifying p-value adjustment method (default: "sidak" (the same as the in the emmeans package))
 #' @param weights Character string specifying weighting method (default: "proportional")
 #' @param type Character string specifying the scale for emmeans (default: "response")
@@ -292,7 +294,6 @@ create_emmeans <- function(model,
 #' @param contrast_type Character string specifying contrast type: "pairwise", 
 #'   "sequential", "vs_control", "vs_reference", or "custom" (default: "pairwise")
 #' @param by_vars Character vector of variables to group contrasts by (default: NULL)
-#' @param method Character string specifying contrast method (default: "revpairwise")
 #' @param reverse Logical indicating whether to reverse contrast direction (default: TRUE)
 #' @param custom_contrasts Custom contrast matrix or list for custom contrasts (default: NULL)
 #' @param adjust_method Character string specifying p-value adjustment method (default: "sidak")
