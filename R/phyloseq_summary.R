@@ -66,7 +66,7 @@
 #' @importFrom dplyr %>%
 #'
 #' @export
-function(phyloseq_obj, 
+phyloseq_summary <- function(phyloseq_obj, 
                                          title = "Phyloseq Object Summary",
                                          subtitle = "Dataset characteristics and quality metrics",
                                          format = c("gt", "kable", "df"),

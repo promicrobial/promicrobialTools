@@ -45,7 +45,6 @@
 #' print(results$issues)
 #'
 #' @export
-#' @importFrom utils make.names
 validateColnames <- function(df, requirements = list()) {
   # Input validation
   if (!is.data.frame(df)) {
