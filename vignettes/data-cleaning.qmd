@@ -4,13 +4,66 @@ vignette: >
   %\VignetteIndexEntry{Cleaning your data before starting analysis}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
+author: "Nathaniel Cole"
+date: "`r Sys.Date()`"
+theme: slate
 knitr:
   opts_chunk:
     collapse: true
-    comment: '#>'
+    results: hold
+    comment: ""
 ---
 
 ```{r}
 #| label: setup
 library(promicrobialTools)
 ```
+
+## Text Case Manipulation with capwords
+
+The `capwords` function provides flexible text case manipulation, particularly useful for standardizing titles, names, and other text data. Let's explore its various features through some practical examples.
+
+```{r}
+# Basic Usage
+text <- c("the quick brown fox", "R programming LANGUAGE", "machine LEARNING")
+capwords(text)
+```
+
+### Strict Mode
+
+When `strict = TRUE`, all characters after the first letter are converted to lowercase
+
+```{r}
+capwords(text, strict = TRUE)
+
+```
+
+### Working with Different Separators
+```{r}
+hyphenated <- c("self-driving", "state-of-the-art", "real-time-processing")
+capwords(hyphenated, split = "-")
+```
+
+### Preserving Special Terms
+```{r}
+hyphenated <- c("self-driving", "state-of-the-art", "real-time-processing")
+capwords(hyphenated, split = "-")
+```
+
+### Handling Mixed Input Types
+
+```{r}
+mixed_input <- c("john doe", NA, "JANE smith", factor("bob wilson"))
+capwords(mixed_input, strict = TRUE)
+```
+
+### Using with dplyr
+
+```{r}
+if (require(dplyr)) {
+  authors %>%
+    mutate(
+      name = capwords(name, strict = TRUE),
+      institution = capwords(institution)
+    )
+}

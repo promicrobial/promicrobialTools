@@ -60,12 +60,60 @@ get_names <- function(x, verbose=TRUE) {
     return(invisible(result))
 }
 
-#from toupper doc examples
-capwords <- function(s, strict = FALSE) {
-    s <- as.character(s)
+#' Capitalize Words in a String
+#'
+#' @description
+#' Capitalizes the first letter of each word in a string or vector of strings.
+#'
+#' @param s A character vector whose words are to be capitalized.
+#' @param strict Logical. If TRUE, converts remaining letters to lowercase.
+#'              If FALSE (default), preserves the case of remaining letters.
+#' @param split Character string containing a regular expression to use for 
+#'             splitting. Default is " " (space).
+#' @param preserve Character vector of words to preserve case for (e.g., "PhD").
+#'
+#' @return A character vector of the same length as the input with words capitalized.
+#'
+#' @examples
+#' capwords("hello world")  # returns "Hello World"
+#' capwords("hello WORLD", strict = TRUE)  # returns "Hello World"
+#' capwords("hello-world", split = "-")  # returns "Hello-World"
+#' capwords("PhD student", preserve = "PhD")  # returns "PhD Student"
+#'
+#' @export
+#'
+#' @seealso \code{\link[base]{toupper}}, \code{\link[base]{tolower}}
+capwords <- function(s, strict = FALSE, split = " ", preserve = character()) {
+    if (!is.character(s) && !is.factor(s)) {
+        s <- as.character(s)
+    }
+    if (!is.logical(strict)) {
+        stop("'strict' must be logical (TRUE/FALSE)")
+    }
     
-    cap <- function(s) paste(toupper(substring(s, 1, 1)),
-                  {s <- substring(s, 2); if(strict) tolower(s) else s},
-                             sep = "", collapse = " " )
-    sapply(strsplit(s, split = " "), cap, USE.NAMES = !is.null(names(s)))
+    cap <- function(words) {
+        # Handle each word separately
+        result <- sapply(words, function(word) {
+            # Check if word should be preserved
+            if (length(preserve) > 0 && word %in% preserve) {
+                return(word)
+            }
+            # Capitalize first letter and handle the rest
+            paste0(
+                toupper(substring(word, 1, 1)),
+                if(strict) tolower(substring(word, 2)) else substring(word, 2)
+            )
+        })
+        paste(result, collapse = split)
+    }
+    
+    # Handle NA values
+    if (any(is.na(s))) {
+        nas <- is.na(s)
+        s[!nas] <- sapply(strsplit(s[!nas], split = split), 
+                         cap, USE.NAMES = !is.null(names(s)))
+        return(s)
+    }
+    
+    sapply(strsplit(s, split = split), cap, USE.NAMES = !is.null(names(s)))
 }
