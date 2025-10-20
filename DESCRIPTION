@@ -23,7 +23,7 @@ Imports:
     magrittr,
     methods,
     microbiome,
-    openxlsx
+    openxlsx,
     phyloseq,
     rlang,
     stats,
