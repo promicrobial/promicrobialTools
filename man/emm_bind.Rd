@@ -23,6 +23,8 @@ emm_bind(
 \item{caption}{Character. Optional table caption}
 
 \item{col.names}{Character vector. Custom column names}
+
+\item{kable}{Logical. Whether to format output table with knitr::kable (default: TRUE)}
 }
 \value{
 A knitr_kable object that can be directly used in R Markdown or Quarto
