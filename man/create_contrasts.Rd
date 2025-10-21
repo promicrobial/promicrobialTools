@@ -26,8 +26,6 @@ create_contrasts(
 \item{custom_contrasts}{Custom contrast matrix or list for custom contrasts (default: NULL)}
 
 \item{adjust_method}{Character string specifying p-value adjustment method (default: "sidak")}
-
-\item{method}{Character string specifying contrast method (default: "revpairwise")}
 }
 \value{
 A contrast object (emmGrid)
