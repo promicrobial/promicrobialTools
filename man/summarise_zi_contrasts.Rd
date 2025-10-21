@@ -74,7 +74,7 @@ zi_model <- glmmTMB(count ~ mined + (1|site), zi=~mined, family=poisson, data=Sa
 
 # Get emmeans and contrasts
 library(emmeans)
-emm_zi <- emmeans(zi_model, specs = "mined", component = "zero")
+emm_zi <- emmeans(zi_model, specs = "mined", component = "zi")
 contrasts_zi <- pairs(emm_zi)
 
 # Get summary with effect sizes
