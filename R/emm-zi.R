@@ -132,7 +132,7 @@ or_to_cohens_d <- function(OR, P0) {
 #'
 #' # Get emmeans and contrasts
 #' library(emmeans)
-#' emm_zi <- emmeans(zi_model, specs = "mined", component = "zero")
+#' emm_zi <- emmeans(zi_model, specs = "mined", component = "zi")
 #' contrasts_zi <- pairs(emm_zi)
 #'
 #' # Get summary with effect sizes
@@ -178,8 +178,8 @@ summarise_zi_contrasts <- function(emm_zi,
         conf %>%
             mutate(
                 OR = exp(estimate),
-                OR_lower = exp(asymp.LCL),
-                OR_upper = exp(asymp.UCL),
+                OR_lower = exp(if("asymp.LCL" %in% names(.)) asymp.LCL else lower.CL),
+                OR_upper = exp(if("asymp.UCL" %in% names(.)) asymp.UCL else upper.CL),
                 P0 = P0,
                 cohens_d = mapply(or_to_cohens_d, .data$OR, .data$P0),
                 magnitude = case_when(
