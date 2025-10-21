@@ -22,6 +22,8 @@ create_emmeans(
 
 \item{specs}{Formula or character string specifying the emmeans structure}
 
+\item{by}{A character vector of predictor names to condition on}
+
 \item{at_values}{Named list of values at which to evaluate emmeans (default: NULL)}
 
 \item{adjust_method}{Character string specifying p-value adjustment method (default: "sidak" (the same as the in the emmeans package))}
