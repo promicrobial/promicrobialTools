@@ -117,3 +117,250 @@ capwords <- function(s, strict = FALSE, split = " ", preserve = character()) {
     
     sapply(strsplit(s, split = split), cap, USE.NAMES = !is.null(names(s)))
 }
+
+#' Safely Load R Packages with Graceful Error Handling
+#'
+#' This function attempts to load R packages while providing informative warnings
+#' for missing packages instead of stopping execution. It's designed to work well
+#' in reproducible analysis environments and with document rendering systems like
+#' Quarto or R Markdown.
+#'
+#' @param package_name Character vector of package names to load. Can be a single
+#'   package name or multiple package names.
+#' @param quietly Logical. If \code{TRUE}, suppresses startup messages from packages.
+#'   Default is \code{TRUE}.
+#' @param warn_missing Logical. If \code{TRUE}, issues warnings for missing packages.
+#'   Default is \code{TRUE}.
+#' @param install_hint Logical. If \code{TRUE}, includes installation instructions
+#'   in warning messages. Default is \code{TRUE}.
+#' @param return_status Logical. If \code{TRUE}, returns detailed status information.
+#'   Default is \code{FALSE} for backwards compatibility.
+#'
+#' @return If \code{return_status = FALSE}: Logical vector indicating success/failure
+#'   for each package (invisibly returned to avoid cluttering output).
+#'   If \code{return_status = TRUE}: A named list with components:
+#'   \itemize{
+#'     \item \code{loaded}: Character vector of successfully loaded packages
+#'     \item \code{missing}: Character vector of missing packages
+#'     \item \code{success}: Named logical vector indicating status for each package
+#'   }
+#'
+#' @details
+#' This function is particularly useful in shared analysis scripts or documents
+#' where package availability may vary across systems. It allows scripts to
+#' continue running even when some packages are unavailable, with appropriate
+#' warnings to users.
+#'
+#' The function handles various edge cases including empty inputs, non-character
+#' inputs, and already-loaded packages.
+#'
+#' @examples
+#' \dontrun{
+#' # Load a single package
+#' safe_library("dplyr")
+#'
+#' # Load multiple packages
+#' safe_library(c("dplyr", "ggplot2", "nonexistent_package"))
+#'
+#' # Load packages with detailed status
+#' result <- safe_library(c("dplyr", "ggplot2"), return_status = TRUE)
+#' print(result$missing)
+#'
+#' # Load packages quietly without install hints
+#' safe_library("dplyr", install_hint = FALSE)
+#' }
+#'
+#' @seealso \code{\link[base]{library}}, \code{\link[base]{requireNamespace}}
+#'
+#' @author Your Name
+#' @export
+safe_library <- function(
+    package_name,
+    quietly = TRUE,
+    warn_missing = TRUE,
+    install_hint = TRUE,
+    return_status = FALSE
+) {
+    # Input validation
+    if (missing(package_name) || is.null(package_name)) {
+        stop("package_name cannot be missing or NULL", call. = FALSE)
+    }
+
+    if (!is.character(package_name)) {
+        stop("package_name must be a character vector", call. = FALSE)
+    }
+
+    if (length(package_name) == 0) {
+        warning("No packages specified", call. = FALSE)
+        if (return_status) {
+            return(list(
+                loaded = character(0),
+                missing = character(0),
+                success = logical(0)
+            ))
+        }
+        return(invisible(logical(0)))
+    }
+
+    # Remove empty strings and duplicates
+    package_name <- unique(package_name[nzchar(package_name)])
+
+    if (length(package_name) == 0) {
+        warning("No valid package names provided", call. = FALSE)
+        if (return_status) {
+            return(list(
+                loaded = character(0),
+                missing = character(0),
+                success = logical(0)
+            ))
+        }
+        return(invisible(logical(0)))
+    }
+
+    # Validate other parameters
+    stopifnot(
+        "quietly must be logical" = is.logical(quietly) && length(quietly) == 1,
+        "warn_missing must be logical" = is.logical(warn_missing) &&
+            length(warn_missing) == 1,
+        "install_hint must be logical" = is.logical(install_hint) &&
+            length(install_hint) == 1,
+        "return_status must be logical" = is.logical(return_status) &&
+            length(return_status) == 1
+    )
+
+    # Initialize results
+    success <- setNames(logical(length(package_name)), package_name)
+    loaded_packages <- character(0)
+    missing_packages <- character(0)
+
+    # Process each package
+    for (pkg in package_name) {
+        if (requireNamespace(pkg, quietly = TRUE)) {
+            # Package is available, try to load it
+            tryCatch(
+                {
+                    if (quietly) {
+                        suppressWarnings(suppressMessages(library(
+                            pkg,
+                            character.only = TRUE
+                        )))
+                    } else {
+                        library(pkg, character.only = TRUE)
+                    }
+                    success[pkg] <- TRUE
+                    loaded_packages <- c(loaded_packages, pkg)
+                },
+                error = function(e) {
+                    success[pkg] <- FALSE
+                    missing_packages <- c(missing_packages, pkg)
+                    if (warn_missing) {
+                        msg <- paste(
+                            "Failed to load package",
+                            pkg,
+                            "-",
+                            e$message
+                        )
+                        warning(msg, call. = FALSE, immediate. = TRUE)
+                    }
+                }
+            )
+        } else {
+            # Package not available
+            success[pkg] <- FALSE
+            missing_packages <- c(missing_packages, pkg)
+
+            if (warn_missing) {
+                msg <- paste("Package '", pkg, "' is not installed.", sep = "")
+                if (install_hint) {
+                    msg <- paste(
+                        msg,
+                        "Install with: install.packages('",
+                        pkg,
+                        "')",
+                        sep = " "
+                    )
+                }
+                msg <- paste(msg, "Some functions may not work properly.")
+                warning(msg, call. = FALSE, immediate. = TRUE)
+            }
+        }
+    }
+
+    # Return results
+    if (return_status) {
+        result <- list(
+            loaded = loaded_packages,
+            missing = missing_packages,
+            success = success
+        )
+        return(result)
+    } else {
+        return(invisible(success))
+    }
+}
+
+#' Load Multiple Packages with Summary Report
+#'
+#' A wrapper around \code{safe_library} that provides a formatted summary
+#' of package loading results, suitable for inclusion in rendered documents.
+#'
+#' @param packages Character vector of package names to load.
+#' @param print_summary Logical. If \code{TRUE}, prints a formatted summary.
+#'   Default is \code{TRUE}.
+#' @param return_details Logical. If \code{TRUE}, returns detailed results.
+#'   Default is \code{FALSE}.
+#' @param ... Additional arguments passed to \code{safe_library}.
+#'
+#' @return Invisibly returns the result from \code{safe_library} with
+#'   \code{return_status = TRUE}.
+#'
+#' @examples
+#' \dontrun{
+#' # Load packages with summary (good for Quarto/R Markdown documents)
+#' load_packages(c("dplyr", "ggplot2", "tidyr"))
+#'
+#' # Load packages silently
+#' load_packages(c("dplyr", "ggplot2"), print_summary = FALSE)
+#' }
+#'
+#' @export
+load_packages <- function(
+    packages,
+    print_summary = TRUE,
+    return_details = FALSE,
+    ...
+) {
+    result <- safe_library(packages, return_status = TRUE, ...)
+
+    if (print_summary) {
+        cat("\n")
+        cat("📦 Package Loading Summary\n")
+        cat("========================\n")
+
+        if (length(result$loaded) > 0) {
+            cat("✅ Successfully loaded:", length(result$loaded), "packages\n")
+            cat("   ", paste(result$loaded, collapse = ", "), "\n")
+        }
+
+        if (length(result$missing) > 0) {
+            cat("❌ Missing packages:", length(result$missing), "\n")
+            cat("   ", paste(result$missing, collapse = ", "), "\n")
+            cat(
+                "   Install with: install.packages(c(",
+                paste(paste0("'", result$missing, "'"), collapse = ", "),
+                "))\n"
+            )
+        }
+
+        if (length(result$missing) == 0) {
+            cat("🎉 All packages loaded successfully!\n")
+        }
+        cat("\n")
+    }
+
+    if (return_details) {
+        return(result)
+    } else {
+        return(invisible(result))
+    }
+}
