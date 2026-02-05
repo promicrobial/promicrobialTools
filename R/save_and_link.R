@@ -156,6 +156,8 @@ create_results_dir <- function(directory_naming = "parent") {
 #' @return Invisibly returns the full file path where data was saved
 #'
 #' @details
+#' Note that code chunks should have `results: asis` as an option to render the link correctly.
+#' 
 #' Supported file formats are determined by file extension:
 #' \itemize{
 #'   \item .csv: Uses \code{write.csv()} with row.names = FALSE
@@ -213,15 +215,20 @@ save_and_link <- function(data, filename, description = NULL, directory_naming =
     jsonlite::write_json(data, file_path, pretty = TRUE)
   }
   
-  # Generate relative path from project root
-  relative_path <- file.path("results", 
-                            stringr::str_remove(results_dir, paste0(".*", file.path("", "results", ""))),
-                            filename)
-  link_text <- if (!is.null(description)) description else paste("Download", filename)
-  
-  # Return markdown link
+  results_base <- file.path(project_root, "results")
+  subdir_name <- basename(results_dir)
+
+  # Build absolute path from project root
+  relative_path <- paste0("/results/", subdir_name, "/", filename)
+
+  link_text <- if (!is.null(description)) {
+    description
+  } else {
+    paste("Download", filename)
+  }
+
   cat(paste0("[", link_text, "](", relative_path, ")\n\n"))
-  
+
   return(invisible(file_path))
 }
 
