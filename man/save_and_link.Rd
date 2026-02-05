@@ -26,6 +26,8 @@ Saves data to a file in the results directory and generates a markdown download 
 that can be embedded in Quarto documents.
 }
 \details{
+Note that code chunks should have \code{results: asis} as an option to render the link correctly.
+
 Supported file formats are determined by file extension:
 \itemize{
 \item .csv: Uses \code{write.csv()} with row.names = FALSE
