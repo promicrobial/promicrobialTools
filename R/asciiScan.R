@@ -21,7 +21,7 @@ asciiScan <- function(dir = "R/",
                           pattern = "(\\.R|\\.r)$",
                           recursive = TRUE,
                           verbose = TRUE) {
-# Input validation
+  # Input validation
   if (!dir.exists(dir)) {
     stop("Directory '", dir, "' does not exist")
   }

@@ -1,0 +1,120 @@
+---
+title: "Data Wrangling with process_data"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Data Wrangling with process_data}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(promicrobialTools)
+```
+
+## Introduction
+
+The `process_data` function is designed to transform wide-format rating data into a long format, making it easier to analyze and visualize paired ratings from multiple reviewers. This vignette demonstrates how to use the function and shows common use cases.
+
+## Basic Usage
+
+First, let's create some example data:
+
+```{r setup}
+library(dplyr)
+library(tidyr)
+
+# Create example data
+example_data <- data.frame(
+  x1 = c(3.0, 2.5, 4.0),
+  y1 = c(2.8, 2.3, 3.8),
+  x2 = c(2.9, 2.4, 3.9),
+  y2 = c(3.1, 2.6, 4.1),
+  group = c("A", "A", "B")
+)
+
+# View the original data
+example_data
+```
+
+### Without Grouping
+
+The basic usage transforms the data without preserving any grouping:
+
+```{r}
+result1 <- process_data(example_data)
+result1
+```
+
+### With Grouping
+
+To preserve a grouping variable:
+
+```{r}
+result2 <- process_data(example_data, group)
+result2
+```
+
+## Common Use Cases
+
+### Calculating Agreement Metrics
+
+The long format makes it easy to calculate agreement between reviewers:
+
+```{r}
+result2 %>%
+  group_by(group) %>%
+  summarise(
+    mean_diff = mean(abs(x - y)),
+    correlation = cor(x, y)
+  )
+```
+
+### Visualization
+
+The long format is ideal for creating visualizations:
+
+```{r}
+library(ggplot2)
+
+ggplot(result2, aes(x = x, y = y, color = group)) +
+  geom_point() +
+  geom_abline(intercept = 0, slope = 1, linetype = "dashed") +
+  facet_wrap(~reviewer) +
+  theme_minimal() +
+  labs(title = "Ratings by Reviewer and Group", x = "X Rating", y = "Y Rating")
+```
+
+## Error Handling
+
+The function includes several checks to ensure data validity:
+
+```{r, error=TRUE}
+# Missing columns
+bad_data <- data.frame(x1 = 1:3, y2 = 4:6)
+process_data(bad_data)
+
+# Empty data frame
+process_data(data.frame())
+
+# Invalid column names
+bad_names <- data.frame(xa = 1:3, ya = 4:6)
+process_data(bad_names)
+```
+
+## Tips and Best Practices
+
+1. Ensure your column names follow the pattern 'x1', 'y1', 'x2', 'y2', etc.
+2. Check that all x-y pairs are complete before processing
+3. Consider the scale and units of your ratings when interpreting results
+4. Use appropriate visualization techniques for your specific type of rating data
+
+## Conclusion
+
+The `process_data` function provides a robust way to transform rating data while maintaining data integrity and offering flexibility in handling grouped data. The resulting long format is ideal for various types of analyses and visualizations.
