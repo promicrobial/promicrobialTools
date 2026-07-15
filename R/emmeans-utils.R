@@ -342,7 +342,7 @@ create_emmeans <- function(model,
 #' )
 #' }
 #'
-#' @seealso \code{\link[emmeans]{contrast}}, \code{\link[emmeans]{pairs}}
+#' @seealso \code{\link[https://rvlenth.github.io/emmeans/reference/contrast.html]{contrast}}
 #' @export
 create_contrasts <- function(emm_object,
                            contrast_type = "pairwise",

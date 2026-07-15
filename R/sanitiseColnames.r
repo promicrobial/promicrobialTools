@@ -77,7 +77,7 @@
 #' #          "duplicate_name", "duplicate_name_1"
 #'
 #' @seealso 
-#' \code{\link{make.names}}, \code{\link{janitor::clean_names}}
+#' \code{\link{make.names}}, \code{\link[https://cran.r-project.org/web/packages/janitor/vignettes/janitor.html#clean-dataframe-names-with-clean_names]{janitor::clean_names}}
 #'
 #' @importFrom stringr str_remove str_replace_all str_trim
 #' @export

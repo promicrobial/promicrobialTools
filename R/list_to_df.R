@@ -12,6 +12,9 @@
 #' @param suffix Character string to add as suffix to column names (default: "")
 #' @param exclude Character vector of element names to exclude from the conversion
 #' @param row_names Character vector of custom row names for the resulting data frame
+#' @param col_names Character vector of custom column names for the resulting data frame
+#' @param transpose_matrices Whether the matrix should be transformedbefore processsing
+#' @param nested Logical indicating if the list is nested
 #'
 #' @return A data frame where:
 #' \itemize{

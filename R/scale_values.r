@@ -42,7 +42,7 @@
 #' scale_values(mat)
 #'
 #' @seealso
-#' \code{\link{[base]{scale}}, \code{\link{[base]{sweep}}
+#' \code{\link[https://cran.r-project.org/doc/manuals/r-release/fullrefman.pdf#Rfn.scale.1]{scale}}, \code[https://cran.r-project.org/doc/manuals/r-release/fullrefman.pdf#Rfn.sweep.1]{\link{sweep}}
 #'
 #' @export
 scale_values <- function(x, 
@@ -173,7 +173,7 @@ knit_print.scaled_values <- function(x, ...) {
 #' Backtransform Scaled Values to Original Scale
 #'
 #' @description
-#' This function reverses the scaling transformation applied by \code{\link{scale_values}},
+#' This function reverses the scaling transformation applied by `scale_values()`,
 #' converting values from a 0-1 scale back to their original scale using the 
 #' range and minimum of the original data or scaling attributes.
 #'
@@ -217,7 +217,7 @@ knit_print.scaled_values <- function(x, ...) {
 #' scaled_mat <- scale_values(mat)
 #' backtransform_scaled_values(scaled_mat)
 #'
-#' @seealso \code{\link{scale_values}}, \code{\link{get_scaled_value}}
+#' @seealso `scale_values()`, `get_scaled_value()`
 #'
 #' @export
 backtransform_scaled_values <- function(scaled_value, 

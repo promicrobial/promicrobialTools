@@ -26,7 +26,8 @@
 #' }
 #'
 #' @importFrom tidyr pivot_longer
-#' @importFrom dplyr mutate select rowid_to_column
+#' @importFrom dplyr mutate select 
+#' @importFrom tibble rowid_to_column
 #' @importFrom rlang enquo is_null quo_name
 #'
 #' @export

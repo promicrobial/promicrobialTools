@@ -180,11 +180,7 @@ do_grouped_summary <- function(data, varname, groupnames, digits) {
 #' Handles single vectors and data frames.
 #'
 #' @param x Numeric vector, list of vectors, or data frame
-#' @param digits Number of decimal places for rounding (default = 4)
-#' @param threshold Ratio threshold for determining overdispersion (default = 1)
-#' @param na.rm Logical, whether to remove NA values (default = TRUE)
-#' @param verbose Logical, whether to print detailed output (default = TRUE)
-#' @param vars Variables to check in data frame (default: all numeric columns)
+#' @param ... Other variables passed to methods
 #'
 #' @return Depends on input:
 #'   - Vector: List of statistics
@@ -210,6 +206,11 @@ varDisp <- function(x, ...) {
   result <- UseMethod("varDisp")
 }
 
+#' @param digits Number of decimal places for rounding (default = 4)
+#' @param threshold Ratio threshold for determining overdispersion (default = 1)
+#' @param na.rm Logical, whether to remove NA values (default = TRUE)
+#' @param verbose Logical, whether to print detailed output (default = TRUE)
+#' @param vars Variables to check in data frame (default: all numeric columns)
 #' @export
 varDisp.default <- function(x, digits = 4, threshold = 1, 
                                        na.rm = TRUE, verbose = TRUE) {
@@ -247,6 +248,11 @@ varDisp.default <- function(x, digits = 4, threshold = 1,
   return(result)
 }
 
+#' @param digits Number of decimal places for rounding (default = 4)
+#' @param threshold Ratio threshold for determining overdispersion (default = 1)
+#' @param na.rm Logical, whether to remove NA values (default = TRUE)
+#' @param verbose Logical, whether to print detailed output (default = TRUE)
+#' @param vars Variables to check in data frame (default: all numeric columns)
 #' @export
 varDisp.data.frame <- function(x, digits = 4, threshold = 1, 
                                           na.rm = TRUE, verbose = TRUE, 
@@ -296,6 +302,8 @@ varDisp.data.frame <- function(x, digits = 4, threshold = 1,
 }
 
 # Print method for overdispersion class
+#' @param x data.frame object
+#' @param ... Variables passed to as.data.frame
 #' @export
 print.varDisp <- function(x, ...) {
   if (inherits(x, "data.frame")) {
@@ -341,7 +349,7 @@ summary.varDisp <- function(object, ...) {
 #' @param type Plot type ("histogram" or "dot", default = "histogram")
 #' @param threshold Overdispersion threshold (default = 1)
 #' @param show_labels Logical, whether to show variable labels (default = TRUE)
-#' @param use_ggplot Logical, whether to use ggplot2 or base R (default = FALSE)
+#' @param log_transform Logical, whether to transform plot data to log scale (default = TRUE)
 #' @param ... Additional arguments passed to plotting functions
 #'
 #' @export

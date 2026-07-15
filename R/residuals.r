@@ -10,8 +10,6 @@
 #' @param model_name Character. Name to display in plot title (default: names(model))
 #' @param render Logical. Whether to render plots in current device (TRUE) or new window (FALSE)
 #' @param chol Logical. Whether to perform Cholesky decomposition (default: TRUE)
-#' @param theme Character. Plot theme: "light", "dark", or "classic" (default: "light")
-#' @param colors List. Custom colors for plot elements (optional)
 #'
 #' @return A grid arrangement of four diagnostic plots:
 #' \itemize{
