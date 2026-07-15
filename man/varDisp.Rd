@@ -9,15 +9,7 @@ varDisp(x, ...)
 \arguments{
 \item{x}{Numeric vector, list of vectors, or data frame}
 
-\item{digits}{Number of decimal places for rounding (default = 4)}
-
-\item{threshold}{Ratio threshold for determining overdispersion (default = 1)}
-
-\item{na.rm}{Logical, whether to remove NA values (default = TRUE)}
-
-\item{verbose}{Logical, whether to print detailed output (default = TRUE)}
-
-\item{vars}{Variables to check in data frame (default: all numeric columns)}
+\item{...}{Other variables passed to methods}
 }
 \value{
 Depends on input:

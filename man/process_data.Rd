@@ -17,13 +17,13 @@ If NULL (default), no grouping is preserved.}
 A tibble in long format with columns:
 - x: x-values from the original pairs
 - y: y-values from the original pairs
-- reviewer: Reviewer ID in the format "R1", "R2", etc.
+- id: Replicate ID in the format "R1", "R2", etc.
 - group: (if group_var is specified) The grouping variable values
 }
 \description{
-Transforms rating data from wide format (with multiple x-y pairs) to long format,
+Transforms data from wide format (with multiple x-y pairs) to long format,
 optionally preserving a grouping variable. The function handles paired x-y ratings
-from multiple reviewers and creates a standardized reviewer ID.
+from multiple sources (e.g. replicates) and creates a standardized ID.
 }
 \examples{
 \dontrun{

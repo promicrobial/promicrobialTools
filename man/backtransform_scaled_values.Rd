@@ -30,7 +30,7 @@ A numeric vector, matrix, or data frame of backtransformed values on
 the original scale, maintaining the same structure as the input.
 }
 \description{
-This function reverses the scaling transformation applied by \code{\link{scale_values}},
+This function reverses the scaling transformation applied by \code{scale_values()},
 converting values from a 0-1 scale back to their original scale using the
 range and minimum of the original data or scaling attributes.
 }
@@ -63,5 +63,5 @@ backtransform_scaled_values(scaled_mat)
 
 }
 \seealso{
-\code{\link{scale_values}}, \code{\link{get_scaled_value}}
+\code{scale_values()}, \code{get_scaled_value()}
 }

@@ -29,6 +29,12 @@ If NULL (default), all elements are included.}
 \item{exclude}{Character vector of element names to exclude from the conversion}
 
 \item{row_names}{Character vector of custom row names for the resulting data frame}
+
+\item{col_names}{Character vector of custom column names for the resulting data frame}
+
+\item{transpose_matrices}{Whether the matrix should be transformedbefore processsing}
+
+\item{nested}{Logical indicating if the list is nested}
 }
 \value{
 A data frame where:

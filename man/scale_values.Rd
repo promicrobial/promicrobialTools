@@ -54,5 +54,5 @@ scale_values(mat)
 
 }
 \seealso{
-\code{\link{[base]{scale}}, \code{\link{[base]{sweep}}
+\code{\link[https://cran.r-project.org/doc/manuals/r-release/fullrefman.pdf#Rfn.scale.1]{scale}}, \code[https://cran.r-project.org/doc/manuals/r-release/fullrefman.pdf#Rfn.sweep.1]{\link{sweep}}
 }

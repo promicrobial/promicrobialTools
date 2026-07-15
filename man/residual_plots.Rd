@@ -14,10 +14,6 @@ residual_plots(model, model_name = NULL, render = TRUE, chol = TRUE)
 \item{render}{Logical. Whether to render plots in current device (TRUE) or new window (FALSE)}
 
 \item{chol}{Logical. Whether to perform Cholesky decomposition (default: TRUE)}
-
-\item{theme}{Character. Plot theme: "light", "dark", or "classic" (default: "light")}
-
-\item{colors}{List. Custom colors for plot elements (optional)}
 }
 \value{
 A grid arrangement of four diagnostic plots:

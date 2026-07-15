@@ -28,6 +28,7 @@ Imports:
     rlang,
     stats,
     stringr,
+    tibble,
     tidyr,
     utils,
     vegan

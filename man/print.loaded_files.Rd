@@ -4,7 +4,10 @@
 \alias{print.loaded_files}
 \title{Print method for loaded_files objects}
 \usage{
-\method{print}{loaded_files}(x, ...)
+\method{print}{loaded_files}(x)
+}
+\arguments{
+\item{x}{Character, file directory}
 }
 \description{
 Print method for loaded_files objects

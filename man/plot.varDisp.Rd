@@ -22,9 +22,9 @@
 
 \item{show_labels}{Logical, whether to show variable labels (default = TRUE)}
 
-\item{...}{Additional arguments passed to plotting functions}
+\item{log_transform}{Logical, whether to transform plot data to log scale (default = TRUE)}
 
-\item{use_ggplot}{Logical, whether to use ggplot2 or base R (default = FALSE)}
+\item{...}{Additional arguments passed to plotting functions}
 }
 \description{
 Plot method for overdispersion results

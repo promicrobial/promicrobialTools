@@ -78,5 +78,5 @@ contrasts <- create_contrasts(
 
 }
 \seealso{
-\code{\link[emmeans]{contrast}}, \code{\link[emmeans]{pairs}}
+\code{\link[https://rvlenth.github.io/emmeans/reference/contrast.html]{contrast}}
 }
