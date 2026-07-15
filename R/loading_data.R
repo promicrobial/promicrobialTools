@@ -44,102 +44,109 @@
 #'
 #' @export
 #'
-#' @importFrom data.table rbindlist fread
+#' @importFrom data.table data.table::rbindlist data.table::fread
 #' @importFrom dplyr %>%
 #' @importFrom tools file_ext
 #'
-loadcombine <- function(file_dir,
-                       file_pattern,
-                       header = TRUE,
-                       sep = "\t",
-                       skip = 0,
-                       output,
-                       clean_names = TRUE,
-                       encoding = "UTF-8",
-                       na.strings = c("NA", "", "NULL")) {
-  
+loadcombine <- function(
+  file_dir,
+  file_pattern,
+  header = TRUE,
+  sep = "\t",
+  skip = 0,
+  output,
+  clean_names = TRUE,
+  encoding = "UTF-8",
+  na.strings = c("NA", "", "NULL")
+) {
+  if (!requireNamespace("data.table", quietly = TRUE)) {
+    stop(
+      "Package \"data.table\" must be installed to use this function.",
+      call. = FALSE
+    )
+  }
+
   # Input validation
   if (!dir.exists(file_dir)) {
     stop("Directory does not exist: ", file_dir)
   }
-  
+
   if (!is.character(file_pattern)) {
     stop("file_pattern must be a character string")
   }
-  
+
   if (!is.character(output)) {
     stop("output must be a character string")
   }
-  
+
   # Validate output directory exists
   output_dir <- dirname(output)
   if (!dir.exists(output_dir)) {
     stop("Output directory does not exist: ", output_dir)
   }
-  
+
   # Check output file extension is valid
   valid_extensions <- c("csv", "tsv", "txt")
   output_ext <- tolower(tools::file_ext(output))
   if (!output_ext %in% valid_extensions) {
-    stop("Output file must have one of these extensions: ",
-         paste(valid_extensions, collapse = ", "))
+    stop(
+      "Output file must have one of these extensions: ",
+      paste(valid_extensions, collapse = ", ")
+    )
   }
-  
-  # Save current directory
-  current_dir <- getwd()
-  on.exit(setwd(current_dir), add = TRUE)
-  
-  # Change to target directory
-  tryCatch({
-    setwd(file_dir)
-  }, error = function(e) {
-    stop("Could not access directory: ", file_dir)
-  })
-  
+
   # Get file paths
   all_file_paths <- list.files(
     path = file_dir,
     pattern = file_pattern,
     full.names = TRUE
   )
-  
+
   if (length(all_file_paths) == 0) {
     stop("No files found matching pattern: ", file_pattern)
   }
-  
+
   # Create progress bar
   pb <- txtProgressBar(min = 0, max = length(all_file_paths), style = 3)
-  
+
   # Load files with error handling
   all_files <- vector("list", length(all_file_paths))
   for (i in seq_along(all_file_paths)) {
-    tryCatch({
-      all_files[[i]] <- fread(
-        all_file_paths[i],
-        header = header,
-        sep = sep,
-        skip = skip,
-        encoding = encoding,
-        na.strings = na.strings
-      )
-    }, error = function(e) {
-      warning("Error reading file: ", basename(all_file_paths[i]), "\n", e$message)
-      NULL
-    })
+    tryCatch(
+      {
+        all_files[[i]] <- data.table::fread(
+          all_file_paths[i],
+          header = header,
+          sep = sep,
+          skip = skip,
+          encoding = encoding,
+          na.strings = na.strings
+        )
+      },
+      error = function(e) {
+        warning(
+          "Error reading file: ",
+          basename(all_file_paths[i]),
+          "\n",
+          e$message
+        )
+        NULL
+      }
+    )
     setTxtProgressBar(pb, i)
   }
   close(pb)
-  
+
   # Remove NULL entries (failed reads)
   all_files <- all_files[!sapply(all_files, is.null)]
-  
+
   if (length(all_files) == 0) {
     stop("No files were successfully read")
   }
-  
+
   # Get filenames
   all_filenames <- basename(all_file_paths)
-  
+
   # Clean column names if requested
   if (clean_names) {
     all_files <- lapply(all_files, function(df) {
@@ -147,9 +154,9 @@ loadcombine <- function(file_dir,
       return(df)
     })
   }
-  
+
   # Combine files
-  all_result <- rbindlist(
+  all_result <- data.table::rbindlist(
     mapply(
       function(df, name) {
         df[, sample := name]
@@ -161,18 +168,22 @@ loadcombine <- function(file_dir,
     ),
     fill = TRUE
   )
-  
+
   # Export results based on file extension
-  tryCatch({
-    switch(output_ext,
-           "csv" = fwrite(all_result, file = output),
-           "tsv" = fwrite(all_result, file = output, sep = "\t"),
-           "txt" = fwrite(all_result, file = output, sep = "\t")
-    )
-  }, error = function(e) {
-    stop("Error writing output file: ", e$message)
-  })
-  
+  tryCatch(
+    {
+      switch(
+        output_ext,
+        "csv" = data.table::fwrite(all_result, file = output),
+        "tsv" = data.table::fwrite(all_result, file = output, sep = "\t"),
+        "txt" = data.table::fwrite(all_result, file = output, sep = "\t")
+      )
+    },
+    error = function(e) {
+      stop("Error writing output file: ", e$message)
+    }
+  )
+
   # Return combined data invisibly
   invisible(all_result)
 }
@@ -346,8 +357,9 @@ loadAll <- function(file_dir = "./",
 }
 
 #' Print method for loaded_files objects
+#' @param x Character, file directory
 #' @export
-print.loaded_files <- function(x, ...) {
+print.loaded_files <- function(x) {
   cat("Loaded Files Object\n")
   cat("Source directory:", attr(x, "source_dir"), "\n")
   cat("Pattern matched:", attr(x, "pattern"), "\n")
